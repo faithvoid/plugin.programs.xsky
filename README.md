@@ -4,6 +4,13 @@ A functional, decentralized and easy to use social media network, right on your 
 
 ![icon](icon.png)
 
+## Screenshots:
+![1](screenshots/1.png)
+![2](screenshots/2.png)
+![3](screenshots/3.png)
+![4](screenshots/4.png)
+
+
 ## Install:
 - Download latest release .zip
 - Extract the .zip file and edit "login.txt" to contain your full username (ie; username.bsky.social or username.custom.domain) and app password (do not use your actual password!)
