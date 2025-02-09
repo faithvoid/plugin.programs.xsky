@@ -12,6 +12,7 @@ A functional, decentralized and easy to use social media network, right on your 
 
 
 ## Install:
+- Before downloading, make sure you're on XBMC 3.6-DEV-r33046 or later, as this most likely requires up to date TLS/SSL libraries!
 - Download latest release .zip
 - Extract the .zip file and edit "login.txt" to contain your full username (ie; username.bsky.social or username.custom.domain) and app password (do not use your actual password!)
 - Copy the xSky folder to Q:/scripts/plugins/programs
