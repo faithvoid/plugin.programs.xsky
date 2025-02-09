@@ -183,13 +183,13 @@ def create_post(session):
 def display_menu():
     menu_items = [
         ("Home", "home"),
-        ("Search", "search"),
+#        ("Search", "search"),
         ("Notifications", "notifications"),
-        ("Chat", "chat"),
-        ("Feeds", "feeds"),
-        ("Lists", "lists"),
+#        ("Chat", "chat"),
+#        ("Feeds", "feeds"),
+#        ("Lists", "lists"),
         ("Profile", "profile"),
-        ("Create Post", "create_post")  # Added Create Post option
+#        ("Post", "create_post") 
     ]
     
     for item in menu_items:
