@@ -39,3 +39,4 @@ A functional, decentralized and easy to use social media network, right on your 
 - Add profile information (ie; name + avatar - bio) as first 2 options when viewing a profile
 - Store login data somewhere that isn't just a plaintext file?
 - Find a way to leverage Bluesky's chat functionality for an IM service(?)
+- Make "Post with Image" or "Post with Video" option for uploading files (this may end up being incredibly janky but a nice QoL thing to have)
