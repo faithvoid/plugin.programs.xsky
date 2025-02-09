@@ -10,4 +10,5 @@ More info TBA.
 
 ## TODO:
 - Implement search, chat, feeds, lists
+- Implement discover feed function
 - Implement the ability to create posts
