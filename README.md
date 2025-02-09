@@ -2,7 +2,7 @@
 
 A functional, decentralized and easy to use social media network, right on your Xbox.
 
-![icon](icon.png)
+![icon](icon2.png)
 
 ## Install:
 - Download latest release .zip
