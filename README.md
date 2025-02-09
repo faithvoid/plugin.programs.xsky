@@ -1,14 +1,13 @@
 # xSky - Bluesky client for XBMC4Xbox
 
-More info TBA.
-
-## Currently Working:
-- Logging in
-- Viewing "following" feed (Home)
+## Working:
+- Logging in (via inserting your credentials into login.txt)
+- Viewing Home feed
 - Viewing notifications
-- Viewing profile feed
+- Viewing profile
 
-## TODO:
-- Implement search, chat, feeds, lists
-- Implement discover feed function
-- Implement the ability to create posts
+## Not Working:
+- Thumbnails
+- Search
+- Posting
+- Feeds / Lists
