@@ -8,6 +8,7 @@ A functional, decentralized and easy to use social media network, right on your 
 - Download latest release .zip
 - Extract the .zip file and edit "login.txt" to contain your full username (ie; username.bsky.social or username.custom.domain) and app password (do not use your actual password!)
 - Copy the xSky folder to Q:/scripts/plugins/programs
+- (Optional) if using a non-Bluesky AT protocol site, you'll have to modify the BASE_URL in default.py to point at that site! Support outside of Bluesky is entirely unsupported, but testing & contributing is encouraged!
 - Run the add-on and enjoy!
 
 ## Working:
