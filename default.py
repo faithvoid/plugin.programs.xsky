@@ -13,6 +13,7 @@ import os
 import sys
 import requests
 import json
+import urlparse
 
 # Plugin constants
 PLUGIN_ID = 'plugin.video.xSky'
@@ -21,7 +22,7 @@ PLUGIN_VERSION = '1.0.0'
 PLUGIN_URL = sys.argv[0]
 PLUGIN_HANDLE = int(sys.argv[1])
 BASE_URL = 'https://bsky.social/xrpc/'
-PAGE_SIZE = 10  # Number of posts per page
+PAGE_SIZE = 25  # Number of posts per page
 
 # Load login credentials
 def load_credentials():
@@ -122,7 +123,7 @@ def search_posts(session, query, cursor=None):
         return [], None
 
 # Display posts in XBMC
-def display_posts(posts, cursor):
+def display_posts(posts, cursor, action):
     for post in posts:
         # Ensure the post structure is as expected
         if 'post' in post:
@@ -142,8 +143,8 @@ def display_posts(posts, cursor):
     
     # Add a "Next Page" item if there are more posts
     if cursor:
-        next_page_url = PLUGIN_URL + "?cursor=" + cursor
-        list_item = xbmcgui.ListItem("Next Page")
+        next_page_url = "{}?action={}&cursor={}".format(PLUGIN_URL, action, cursor)
+        list_item = xbmcgui.ListItem("Next Page >>")
         xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, next_page_url, list_item, isFolder=True)
     
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
@@ -189,7 +190,7 @@ def display_menu():
 #        ("Feeds", "feeds"),
 #        ("Lists", "lists"),
         ("Profile", "profile"),
-#        ("Post", "create_post") 
+#        ("Create Post", "create_post")  # Added Create Post option
     ]
     
     for item in menu_items:
@@ -201,19 +202,19 @@ def display_menu():
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
 
 # Handle actions based on menu selection
-def handle_action(action, session, user_handle):
+def handle_action(action, session, user_handle, cursor=None):
     if action == "home":
-        posts, cursor = fetch_posts(session)
+        posts, cursor = fetch_posts(session, cursor)
         if posts:
-            display_posts(posts, cursor)
+            display_posts(posts, cursor, action)
     elif action == "search":
         keyboard = xbmc.Keyboard('', 'Enter search query')
         keyboard.doModal()
         if keyboard.isConfirmed():
             query = keyboard.getText()
-            posts, cursor = search_posts(session, query)
+            posts, cursor = search_posts(session, query, cursor)
             if posts:
-                display_posts(posts, cursor)
+                display_posts(posts, cursor, action)
     elif action == "notifications":
         notifications = fetch_notifications(session)
         if notifications:
@@ -225,9 +226,9 @@ def handle_action(action, session, user_handle):
     elif action == "lists":
         xbmcgui.Dialog().ok(PLUGIN_NAME, "Lists is not yet implemented.")
     elif action == "profile":
-        posts, cursor = fetch_user_posts(session, user_handle)
+        posts, cursor = fetch_user_posts(session, user_handle, cursor)
         if posts:
-            display_posts(posts, cursor)
+            display_posts(posts, cursor, action)
     elif action == "create_post":
         create_post(session)
     else:
@@ -236,10 +237,13 @@ def handle_action(action, session, user_handle):
 # Main function
 def main():
     action = None
+    cursor = None
 
-    # Parse action from plugin arguments if available
+    # Parse action and cursor from plugin arguments if available
     if len(sys.argv) > 2:
-        action = sys.argv[2].split('=')[1] if 'action=' in sys.argv[2] else None
+        params = dict(urlparse.parse_qsl(sys.argv[2][1:]))
+        action = params.get('action')
+        cursor = params.get('cursor')
 
     username, app_password = load_credentials()
     if not username or not app_password:
@@ -251,7 +255,7 @@ def main():
         return
 
     user_handle = session.get('handle', 'unknown_user')
-    handle_action(action, session, user_handle)
+    handle_action(action, session, user_handle, cursor)
 
 if __name__ == '__main__':
     main()
