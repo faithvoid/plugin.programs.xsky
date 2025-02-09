@@ -1,5 +1,8 @@
 # xSky - Bluesky client for XBMC4Xbox
 
+A functional, decentralized social media network, right on your Xbox.
+![icon](default.tbn)
+
 ## Working:
 - Logging in (via inserting your credentials into login.txt)
 - Viewing Home feed
