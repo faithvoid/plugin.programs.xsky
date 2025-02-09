@@ -2,7 +2,7 @@
 
 A functional, decentralized social media network, right on your Xbox.
 
-![icon](default.tbn)
+![icon](icon.png)
 
 ## Working:
 - Logging in (via inserting your credentials into login.txt)
