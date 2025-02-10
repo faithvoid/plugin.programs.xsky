@@ -25,7 +25,8 @@ A functional, decentralized and easy to use social media network, right on your 
 - Viewing notifications
 - Viewing profile
 - Viewing Followers / Following + user profiles
-- Text / Image Posts
+- Making text/image posts
+- Viewing posts as list items + dialog windows
 - Viewing last message in current conversations
 
 ## Not Working:
@@ -36,7 +37,6 @@ A functional, decentralized and easy to use social media network, right on your 
 
 ## TODO:
 - Add profile information (ie; name + avatar - bio) as first 2 options when viewing a profile
-- Add timestamps to posts
 - Add some way to differentiate between a post and a reply
 - Add "Follow / Unfollow User", "Block User" & "Reply to User" as context menu options
 - Add reply chains(?)
