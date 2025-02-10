@@ -15,6 +15,8 @@ import requests
 import json
 import urlparse
 from datetime import datetime, timedelta
+import time
+import datetime
 
 # Plugin constants
 PLUGIN_ID = 'plugin.video.xSky'
@@ -176,6 +178,9 @@ def fetch_profile(session, user_handle):
 
 # Display posts in XBMC
 def display_posts(posts, cursor, action, profile=None):
+    # Manually enter the time zone difference from UTC (e.g., -5 for EST)
+    timezone_offset = -5  # Replace this with the desired time zone offset
+    
     if profile:
         # Display profile name with avatar as thumbnail
         name = profile.get('displayName', 'Unknown')
@@ -201,7 +206,18 @@ def display_posts(posts, cursor, action, profile=None):
         if 'post' in post:
             author = post['post']['author']['handle']
             text = post['post']['record']['text']
-            title = u"{}: {}".format(author, text)  # Use Unicode string formatting
+            # Add timestamp
+            created_at = post['post']['record']['createdAt']
+            try:
+                utc_time = datetime.datetime.strptime(created_at, '%Y-%m-%dT%H:%M:%S.%fZ')
+            except ValueError:
+                utc_time = datetime.datetime.strptime(created_at, '%Y-%m-%dT%H:%M:%SZ')
+            
+            # Convert UTC time to local time using manual offset
+            local_time = utc_time + datetime.timedelta(hours=timezone_offset)
+            timestamp = local_time.strftime('%I:%M %p')
+            
+            title = u"{} - {}: {}".format(timestamp, author, text)  # Use Unicode string formatting
             
             # Check if there are images attached to the post
             images = post['post']['record'].get('images', [])
@@ -210,7 +226,7 @@ def display_posts(posts, cursor, action, profile=None):
             list_item = xbmcgui.ListItem(title)
             if thumbnail:
                 list_item.setThumbnailImage(thumbnail)
-            
+
             # Add context menu to view the full post
             context_menu = [(u'View Post', u'XBMC.RunPlugin({}?action=view_post&author={}&text={})'.format(PLUGIN_URL, author, text))]
             list_item.addContextMenuItems(context_menu)
@@ -219,12 +235,11 @@ def display_posts(posts, cursor, action, profile=None):
     
     # Add a "Next Page" item if there are more posts
     if cursor:
-        next_page_url = u"{}?action={}&cursor={}".format(PLUGIN_URL, action, cursor)
-        list_item = xbmcgui.ListItem(u"Next Page >>")
+        next_page_url = "{}?action={}&cursor={}".format(PLUGIN_URL, action, cursor)
+        list_item = xbmcgui.ListItem("Next Page >>")
         xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, next_page_url, list_item, isFolder=True)
     
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
-
 
 # Display notifications in XBMC
 def display_notifications(notifications):
