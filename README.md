@@ -25,10 +25,10 @@ A functional, decentralized and easy to use social media network, right on your 
 - Viewing notifications
 - Viewing profile
 - Viewing Followers / Following + user profiles
-- Posting
+- Text / Image Posts
 
 ## Not Working:
-- Images / Videos / Thumbnails
+- Viewing Images / Videos / Thumbnails
 - Search
 - Feeds / Lists
 - Chat
