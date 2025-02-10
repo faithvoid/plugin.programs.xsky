@@ -38,6 +38,7 @@ A functional, decentralized and easy to use social media network, right on your 
 - Chat (currently read-only and only shows the last message received in a conversation)
 
 ## TODO:
+- Improve visual language (try to match 1:1 to the Bluesky website where possible).
 - Add profile information (ie; name + avatar - bio) as first 2 options when viewing a profile
 - Add some way to differentiate between a post and a reply
 - Add "Follow / Unfollow User", "Block User" & "Reply to User" as context menu options
