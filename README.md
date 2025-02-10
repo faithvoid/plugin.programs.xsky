@@ -31,6 +31,7 @@ A functional, decentralized and easy to use social media network, right on your 
 - Images / Videos / Thumbnails
 - Search
 - Feeds / Lists
+- Chat
 
 ## TODO:
 - Add profile information (ie; name + avatar - bio) as first 2 options when viewing a profile
