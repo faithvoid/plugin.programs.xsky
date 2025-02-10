@@ -14,9 +14,9 @@ import sys
 import requests
 import json
 import urlparse
-from datetime import datetime, timedelta
 import time
 import datetime
+from datetime import timedelta
 
 # Plugin constants
 PLUGIN_ID = 'plugin.video.xSky'
