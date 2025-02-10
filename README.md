@@ -26,6 +26,7 @@ A functional, decentralized and easy to use social media network, right on your 
 - Viewing profile
 - Viewing Followers / Following + user profiles
 - Text / Image Posts
+- Viewing last message in current conversations
 
 ## Not Working:
 - Viewing Images / Videos / Thumbnails
