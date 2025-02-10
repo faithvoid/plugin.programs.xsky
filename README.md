@@ -25,11 +25,11 @@ A functional, decentralized and easy to use social media network, right on your 
 - Viewing notifications
 - Viewing profile
 - Viewing Followers / Following + user profiles
+- Posting
 
 ## Not Working:
 - Images / Videos / Thumbnails
 - Search
-- Posting
 - Feeds / Lists
 
 ## TODO:
