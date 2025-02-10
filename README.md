@@ -39,13 +39,12 @@ A functional, decentralized and easy to use social media network, right on your 
 
 ## TODO:
 - Improve visual language (try to match 1:1 to the Bluesky website where possible).
-- Change timestamps (ie; add "- 2H" at the end of a post to signify it was posted 2 hours ago, like the website)
 - Add profile information (ie; name + avatar - bio) as first 2 options when viewing a profile
 - Add some way to differentiate between a post and a reply
 - Add "Follow / Unfollow User", "Block User" & "Reply to User" as context menu options
 - Add sent/received indicator in messages
 - Add reply chains(?)
 - Store login data somewhere that isn't just a plaintext file?
-- Find a way to leverage Bluesky's chat functionality for an IM service(?)
+- [Find a way to leverage Bluesky's chat functionality for an IM service(?)](https://github.com/faithvoid/plugin.programs.xchat)
 - Show user avatar as thumbnail if the image doesn't contain media(?)
 - Add notification system that alerts the user as to whenever they get a reply / follow / message while outside of the plugin (this will probably have to be it's own plugin)
