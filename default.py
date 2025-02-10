@@ -261,6 +261,72 @@ def display_user_list(users):
         xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, url, list_item, isFolder=True)
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
 
+
+# Resolve DID to URL for mention purposes.
+def resolve_did(handle, session):
+    url = BASE_URL + 'com.atproto.identity.resolveHandle'
+    headers = {
+        'Authorization': 'Bearer ' + session['accessJwt'],
+        'Content-Type': 'application/json'
+    }
+    data = {
+        'handle': handle
+    }
+    try:
+        response = requests.get(url, headers=headers, params=data)
+        response.raise_for_status()  # Raise an error for bad status codes
+        return response.json().get('did')
+    except requests.exceptions.RequestException as e:
+        xbmcgui.Dialog().ok(PLUGIN_NAME, 'Failed to resolve DID. Error: {}'.format(str(e)))
+        return None
+
+# Detects mention / tag facets and hyperlinks them accordingly.
+def detect_facets(text, session):
+    facets = []
+    utf16_text = text
+
+    def utf16_index_to_utf8_index(i):
+        return len(utf16_text[:i].encode('utf-8'))
+
+    # Detect mentions
+    mention_pattern = re.compile(r'(^|\s|\()(@[a-zA-Z0-9.-]+)(\b)')
+    for match in mention_pattern.finditer(utf16_text):
+        mention = match.group(2)
+        handle = mention[1:]  # Remove the '@' character
+        start = match.start(2)
+        end = match.end(2)
+        did = resolve_did(handle, session)
+        if did:
+            facets.append({
+                'index': {
+                    'byteStart': utf16_index_to_utf8_index(start),
+                    'byteEnd': utf16_index_to_utf8_index(end),
+                },
+                'features': [{
+                    '$type': 'app.bsky.richtext.facet#mention',
+                    'did': did
+                }]
+            })
+
+    # Detect hashtags
+    hashtag_pattern = re.compile(r'(#[^\d\s]\S*)')
+    for match in hashtag_pattern.finditer(utf16_text):
+        hashtag = match.group(1)
+        start = match.start(1)
+        end = match.end(1)
+        facets.append({
+            'index': {
+                'byteStart': utf16_index_to_utf8_index(start),
+                'byteEnd': utf16_index_to_utf8_index(end),
+            },
+            'features': [{
+                '$type': 'app.bsky.richtext.facet#tag',
+                'tag': hashtag[1:]
+            }]
+        })
+
+    return facets
+
 # Create a new post
 def create_post(session):
     keyboard = xbmc.Keyboard('', 'Enter your post')
@@ -270,10 +336,14 @@ def create_post(session):
         
         # trailing "Z" is preferred over "+00:00"
         now = datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
+        
+        # Detect facets for hashtags and mentions
+        facets = detect_facets(post_text, session)
 
         post = {
             "$type": "app.bsky.feed.post",
             "text": post_text,
+            "facets": facets,
             "createdAt": now,
         }
 
@@ -302,6 +372,9 @@ def create_post_media(session):
         
         # trailing "Z" is preferred over "+00:00"
         now = datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
+        
+        # Detect facets for hashtags and mentions
+        facets = detect_facets(post_text, session)
 
         # Prompt user to select image files
         dialog = xbmcgui.Dialog()
@@ -332,6 +405,7 @@ def create_post_media(session):
         post = {
             "$type": "app.bsky.feed.post",
             "text": post_text,
+            "facets": facets,
             "createdAt": now,
             "embed": {
                 "$type": "app.bsky.embed.images",
