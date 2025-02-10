@@ -23,6 +23,7 @@ PLUGIN_VERSION = '1.0.0'
 PLUGIN_URL = sys.argv[0]
 PLUGIN_HANDLE = int(sys.argv[1])
 BASE_URL = 'https://bsky.social/xrpc/'
+CHAT_URL = 'https://api.bsky.chat/xrpc/'
 PAGE_SIZE = 25  # Number of posts per page
 
 # Load login credentials
