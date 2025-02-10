@@ -204,6 +204,7 @@ def display_posts(posts, cursor, action, profile=None):
         if 'post' in post:
             author = post['post']['author']['handle']
             text = post['post']['record']['text']
+            
             # Add timestamp
             created_at = post['post']['record']['createdAt']
             try:
@@ -211,11 +212,21 @@ def display_posts(posts, cursor, action, profile=None):
             except ValueError:
                 utc_time = datetime.datetime.strptime(created_at, '%Y-%m-%dT%H:%M:%SZ')
             
-            # Convert UTC time to local time using manual offset
-            local_time = utc_time + datetime.timedelta(hours=TIMEZONE_OFFSET)
-            timestamp = local_time.strftime('%I:%M %p')
+            # Calculate elapsed time
+            now = datetime.datetime.utcnow()
+            elapsed_time = now - utc_time
+            total_seconds = int(elapsed_time.total_seconds())
             
-            title = u"{} - {}: {}".format(timestamp, author, text)  # Use Unicode string formatting
+            if total_seconds < 60:
+                time_suffix = "- {}s".format(total_seconds)
+            elif total_seconds < 3600:
+                minutes_ago = total_seconds // 60
+                time_suffix = "- {}m".format(minutes_ago)
+            else:
+                hours_ago = total_seconds // 3600
+                time_suffix = "- {}h".format(hours_ago)
+            
+            title = u"{}: {} {}".format(author, text, time_suffix)  # Use Unicode string formatting
             
             # Check if there are images attached to the post
             images = post['post']['record'].get('images', [])
