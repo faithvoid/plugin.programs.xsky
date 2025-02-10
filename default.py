@@ -14,6 +14,7 @@ import sys
 import requests
 import json
 import urlparse
+from datetime import datetime, timedelta
 
 # Plugin constants
 PLUGIN_ID = 'plugin.video.xSky'
@@ -102,6 +103,40 @@ def fetch_user_posts(session, user_handle, cursor=None):
         xbmcgui.Dialog().ok(PLUGIN_NAME, 'Failed to fetch user posts. Error: {}'.format(str(e)))
         return [], None
 
+# Fetch followers from BlueSky
+def fetch_followers(session):
+    url = BASE_URL + 'app.bsky.graph.getFollowers'
+    headers = {
+        'Authorization': 'Bearer ' + session['accessJwt']
+    }
+    params = {
+        'actor': session['handle']
+    }
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()  # Raise an error for bad status codes
+        return response.json().get('followers', [])
+    except requests.exceptions.RequestException as e:
+        xbmcgui.Dialog().ok(PLUGIN_NAME, 'Failed to fetch followers. Error: {}'.format(str(e)))
+        return []
+
+# Fetch following from BlueSky
+def fetch_following(session):
+    url = BASE_URL + 'app.bsky.graph.getFollows'
+    headers = {
+        'Authorization': 'Bearer ' + session['accessJwt']
+    }
+    params = {
+        'actor': session['handle']
+    }
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()  # Raise an error for bad status codes
+        return response.json().get('follows', [])
+    except requests.exceptions.RequestException as e:
+        xbmcgui.Dialog().ok(PLUGIN_NAME, 'Failed to fetch following. Error: {}'.format(str(e)))
+        return []
+
 # Search posts on BlueSky
 def search_posts(session, query, cursor=None):
     url = BASE_URL + 'app.bsky.feed.searchPosts'
@@ -155,9 +190,20 @@ def display_notifications(notifications):
         reason = notification.get('reason', 'No Title')
         user_handle = notification.get('author', {}).get('handle', 'Unknown user')
         message = notification.get('record', {}).get('text', 'No additional information')
-        title = "{}: {} - {}".format(reason.capitalize(), user_handle, message)
+        title = u"{}: {} - {}".format(reason.capitalize(), user_handle, message)
         list_item = xbmcgui.ListItem(title)
         xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, PLUGIN_URL, list_item, isFolder=False)
+    xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
+
+# Display followers or following in XBMC
+def display_user_list(users):
+    for user in users:
+        user_handle = user.get('handle', 'Unknown user')
+        display_name = user.get('displayName', 'No Name')
+        title = u"{} ({})".format(display_name, user_handle)  # Use Unicode string formatting
+        url = "{}?action=profile&user_handle={}".format(PLUGIN_URL, user_handle)
+        list_item = xbmcgui.ListItem(title)
+        xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, url, list_item, isFolder=True)
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
 
 # Create a new post
@@ -166,12 +212,56 @@ def create_post(session):
     keyboard.doModal()
     if keyboard.isConfirmed():
         post_text = keyboard.getText()
-        url = BASE_URL + 'app.bsky.feed.createPost'
+        
+        # trailing "Z" is preferred over "+00:00"
+        now = datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
+
+        post = {
+            "$type": "app.bsky.feed.post",
+            "text": post_text,
+            "createdAt": now,
+        }
+
+        url = BASE_URL + 'com.atproto.repo.createRecord'
         headers = {
             'Authorization': 'Bearer ' + session['accessJwt']
         }
         data = {
-            'text': post_text
+            'repo': session['did'],
+            'collection': 'app.bsky.feed.post',
+            'record': post
+        }
+        try:
+            response = requests.post(url, headers=headers, json=data)
+            response.raise_for_status()  # Raise an error for bad status codes
+            xbmcgui.Dialog().ok(PLUGIN_NAME, 'Post created successfully!')
+        except requests.exceptions.RequestException as e:
+            xbmcgui.Dialog().ok(PLUGIN_NAME, 'Failed to create post. Error: {}'.format(str(e)))
+
+# Create a new post with media
+def create_post_media(session):
+    keyboard = xbmc.Keyboard('', 'Enter your post')
+    keyboard.doModal()
+    if keyboard.isConfirmed():
+        post_text = keyboard.getText()
+        
+        # trailing "Z" is preferred over "+00:00"
+        now = datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
+
+        post = {
+            "$type": "app.bsky.feed.post",
+            "text": post_text,
+            "createdAt": now,
+        }
+
+        url = BASE_URL + 'com.atproto.repo.createRecord'
+        headers = {
+            'Authorization': 'Bearer ' + session['accessJwt']
+        }
+        data = {
+            'repo': session['did'],
+            'collection': 'app.bsky.feed.post',
+            'record': post
         }
         try:
             response = requests.post(url, headers=headers, json=data)
@@ -186,11 +276,11 @@ def display_menu():
         ("Home", "home"),
 #        ("Search", "search"),
         ("Notifications", "notifications"),
-#        ("Chat", "chat"),
-#        ("Feeds", "feeds"),
-#        ("Lists", "lists"),
+        ("Followers", "followers"),
+        ("Following", "following"),
         ("Profile", "profile"),
-#        ("Create Post", "create_post")  # Added Create Post option
+        ("Post", "create_post")
+#        ("Post (Media)", "create_post_media")
     ]
     
     for item in menu_items:
@@ -219,18 +309,22 @@ def handle_action(action, session, user_handle, cursor=None):
         notifications = fetch_notifications(session)
         if notifications:
             display_notifications(notifications)
-    elif action == "chat":
-        xbmcgui.Dialog().ok(PLUGIN_NAME, "Chat is not yet implemented.")
-    elif action == "feeds":
-        xbmcgui.Dialog().ok(PLUGIN_NAME, "Feeds is not yet implemented.")
-    elif action == "lists":
-        xbmcgui.Dialog().ok(PLUGIN_NAME, "Lists is not yet implemented.")
+    elif action == "followers":
+        followers = fetch_followers(session)
+        if followers:
+            display_user_list(followers)
+    elif action == "following":
+        following = fetch_following(session)
+        if following:
+            display_user_list(following)
     elif action == "profile":
         posts, cursor = fetch_user_posts(session, user_handle, cursor)
         if posts:
             display_posts(posts, cursor, action)
     elif action == "create_post":
         create_post(session)
+    elif action == "create_post_media":
+        create_post_media(session)
     else:
         display_menu()
 
@@ -238,12 +332,14 @@ def handle_action(action, session, user_handle, cursor=None):
 def main():
     action = None
     cursor = None
+    user_handle = None
 
-    # Parse action and cursor from plugin arguments if available
+    # Parse action, cursor, and user_handle from plugin arguments if available
     if len(sys.argv) > 2:
         params = dict(urlparse.parse_qsl(sys.argv[2][1:]))
         action = params.get('action')
         cursor = params.get('cursor')
+        user_handle = params.get('user_handle')
 
     username, app_password = load_credentials()
     if not username or not app_password:
@@ -254,7 +350,8 @@ def main():
     if not session:
         return
 
-    user_handle = session.get('handle', 'unknown_user')
+    if not user_handle:
+        user_handle = session.get('handle', 'unknown_user')
     handle_action(action, session, user_handle, cursor)
 
 if __name__ == '__main__':
