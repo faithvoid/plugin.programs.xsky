@@ -331,7 +331,7 @@ def display_menu():
         ("Followers", "followers"),
         ("Following", "following"),
         ("Profile", "profile"),
-        ("Post", "create_post")
+        ("Post", "create_post"),
         ("Post (Image)", "create_post_media")
     ]
     
