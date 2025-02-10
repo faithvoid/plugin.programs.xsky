@@ -222,11 +222,27 @@ def display_posts(posts, cursor, action, profile=None):
             elif total_seconds < 3600:
                 minutes_ago = total_seconds // 60
                 time_suffix = "- {}m".format(minutes_ago)
-            else:
+            elif total_seconds < 86400:
                 hours_ago = total_seconds // 3600
                 time_suffix = "- {}h".format(hours_ago)
+            elif total_seconds < 2592000:
+                days_ago = total_seconds // 86400
+                time_suffix = "- {}d".format(days_ago)
+            elif total_seconds < 31536000:
+                months_ago = total_seconds // 2592000
+                time_suffix = "- {}mo".format(months_ago)
+            else:
+                years_ago = total_seconds // 31536000
+                time_suffix = "- {}y".format(years_ago)
             
-            title = u"{}: {} {}".format(author, text, time_suffix)  # Use Unicode string formatting
+            # Get replies, likes, and reshares counts
+            replies_count = post['post'].get('replyCount', 0)
+            likes_count = post['post'].get('likeCount', 0)
+            reshares_count = post['post'].get('repostCount', 0)
+            
+            counts_suffix = "({} replies, {} likes, {} reshares)".format(replies_count, likes_count, reshares_count)
+            
+            title = u"{}: {} {} {}".format(author, text, counts_suffix, time_suffix)  # Use Unicode string formatting
             
             # Check if there are images attached to the post
             images = post['post']['record'].get('images', [])
