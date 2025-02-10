@@ -248,10 +248,40 @@ def create_post_media(session):
         # trailing "Z" is preferred over "+00:00"
         now = datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
 
+        # Prompt user to select image files
+        dialog = xbmcgui.Dialog()
+        image_paths = []
+        while True:
+            image_path = dialog.browse(1, 'Select Image', 'files', '.jpg|.jpeg|.png|.webp', False, False, '')
+            if image_path:
+                image_paths.append(image_path)
+                if len(image_paths) >= 4:  # Limit to 4 images
+                    break
+                if not dialog.yesno(PLUGIN_NAME, 'Do you want to add another image?'):
+                    break
+            else:
+                break
+
+        # Upload images and prepare the media structure
+        images = []
+        for image_path in image_paths:
+            with open(image_path, 'rb') as f:
+                img_bytes = f.read()
+            # this size limit is specified in the app.bsky.embed.images lexicon
+            if len(img_bytes) > 1000000:
+                xbmcgui.Dialog().ok(PLUGIN_NAME, 'Image file size too large. 1000000 bytes (1MB) maximum, got: {}'.format(len(img_bytes)))
+                return
+            blob = upload_file(BASE_URL, session['accessJwt'], image_path, img_bytes)
+            images.append({"alt": "", "image": blob})
+
         post = {
             "$type": "app.bsky.feed.post",
             "text": post_text,
             "createdAt": now,
+            "embed": {
+                "$type": "app.bsky.embed.images",
+                "images": images
+            }
         }
 
         url = BASE_URL + 'com.atproto.repo.createRecord'
@@ -270,6 +300,28 @@ def create_post_media(session):
         except requests.exceptions.RequestException as e:
             xbmcgui.Dialog().ok(PLUGIN_NAME, 'Failed to create post. Error: {}'.format(str(e)))
 
+# Function to upload files
+def upload_file(base_url, access_token, filename, img_bytes):
+    suffix = filename.split(".")[-1].lower()
+    mimetype = "application/octet-stream"
+    if suffix in ["png"]:
+        mimetype = "image/png"
+    elif suffix in ["jpeg", "jpg"]:
+        mimetype = "image/jpeg"
+    elif suffix in ["webp"]:
+        mimetype = "image/webp"
+
+    resp = requests.post(
+        base_url + "com.atproto.repo.uploadBlob",
+        headers={
+            "Content-Type": mimetype,
+            "Authorization": "Bearer " + access_token,
+        },
+        data=img_bytes,
+    )
+    resp.raise_for_status()
+    return resp.json()["blob"]
+    
 # Display menu in XBMC
 def display_menu():
     menu_items = [
@@ -280,7 +332,7 @@ def display_menu():
         ("Following", "following"),
         ("Profile", "profile"),
         ("Post", "create_post")
-#        ("Post (Media)", "create_post_media")
+        ("Post (Image)", "create_post_media")
     ]
     
     for item in menu_items:
