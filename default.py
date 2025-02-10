@@ -520,7 +520,7 @@ def display_menu():
         ("Home", "home"),
 #        ("Search", "search"),
         ("Notifications", "notifications"),
-        ("Messages", "conversations"),
+        ("Chat", "conversations"),
         ("Followers", "followers"),
         ("Following", "following"),
         ("Profile", "profile"),
