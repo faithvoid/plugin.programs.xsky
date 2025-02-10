@@ -211,15 +211,20 @@ def display_posts(posts, cursor, action, profile=None):
             if thumbnail:
                 list_item.setThumbnailImage(thumbnail)
             
+            # Add context menu to view the full post
+            context_menu = [(u'View Post', u'XBMC.RunPlugin({}?action=view_post&author={}&text={})'.format(PLUGIN_URL, author, text))]
+            list_item.addContextMenuItems(context_menu)
+            
             xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, PLUGIN_URL, list_item, isFolder=False)
     
     # Add a "Next Page" item if there are more posts
     if cursor:
-        next_page_url = "{}?action={}&cursor={}".format(PLUGIN_URL, action, cursor)
-        list_item = xbmcgui.ListItem("Next Page >>")
+        next_page_url = u"{}?action={}&cursor={}".format(PLUGIN_URL, action, cursor)
+        list_item = xbmcgui.ListItem(u"Next Page >>")
         xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, next_page_url, list_item, isFolder=True)
     
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
+
 
 # Display notifications in XBMC
 def display_notifications(notifications):
@@ -483,6 +488,12 @@ def handle_action(action, session, user_handle, cursor=None):
         conversations = fetch_conversations(session)
         if conversations:
             display_conversations(conversations)
+    elif action == "view_post":
+        author = unicode(sys.argv[2].split('author=')[1].split('&')[0], 'utf-8')
+        text = unicode(sys.argv[2].split('text=')[1], 'utf-8')
+        # Split text into multiple lines if necessary
+        split_text = [text[i:i+64] for i in range(0, len(text), 64)]
+        xbmcgui.Dialog().ok(author, *split_text)
     else:
         display_menu()
 
