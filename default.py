@@ -27,6 +27,7 @@ PLUGIN_HANDLE = int(sys.argv[1])
 BASE_URL = 'https://bsky.social/xrpc/'
 CHAT_URL = 'https://api.bsky.chat/xrpc/'
 PAGE_SIZE = 25  # Number of posts per page
+TIMEZONE_OFFSET = -5  # Manually enter the time zone difference from UTC (e.g., -5 for EST)
 
 # Load login credentials
 def load_credentials():
@@ -178,9 +179,6 @@ def fetch_profile(session, user_handle):
 
 # Display posts in XBMC
 def display_posts(posts, cursor, action, profile=None):
-    # Manually enter the time zone difference from UTC (e.g., -5 for EST)
-    timezone_offset = -5  # Replace this with the desired time zone offset
-    
     if profile:
         # Display profile name with avatar as thumbnail
         name = profile.get('displayName', 'Unknown')
@@ -214,7 +212,7 @@ def display_posts(posts, cursor, action, profile=None):
                 utc_time = datetime.datetime.strptime(created_at, '%Y-%m-%dT%H:%M:%SZ')
             
             # Convert UTC time to local time using manual offset
-            local_time = utc_time + datetime.timedelta(hours=timezone_offset)
+            local_time = utc_time + datetime.timedelta(hours=TIMEZONE_OFFSET)
             timestamp = local_time.strftime('%I:%M %p')
             
             title = u"{} - {}: {}".format(timestamp, author, text)  # Use Unicode string formatting
@@ -240,7 +238,7 @@ def display_posts(posts, cursor, action, profile=None):
         xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, next_page_url, list_item, isFolder=True)
     
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
-
+    
 # Display notifications in XBMC
 def display_notifications(notifications):
     for notification in notifications:
