@@ -1,4 +1,4 @@
-# xSky - Bluesky client for XBMC4Xbox
+# xSky - Bluesky / AT Protocol client for XBMC4Xbox
 
 A functional, decentralized and easy to use social media network, right on your Xbox.
 
@@ -40,7 +40,7 @@ A functional, decentralized and easy to use social media network, right on your 
 - Add profile information (ie; name + avatar - bio) as first 2 options when viewing a profile
 - Add some way to differentiate between a post and a reply
 - Add "Follow / Unfollow User", "Block User" & "Reply to User" as context menu options
-- Add sent/received indicator & timestamps in messages
+- Add sent/received indicator in messages
 - Add reply chains(?)
 - Store login data somewhere that isn't just a plaintext file?
 - Find a way to leverage Bluesky's chat functionality for an IM service(?)
