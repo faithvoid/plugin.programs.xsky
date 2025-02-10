@@ -29,12 +29,13 @@ A functional, decentralized and easy to use social media network, right on your 
 - Making text/image posts
 - Viewing posts as list items + dialog windows
 - Viewing last message in current conversations
+- Tagging users and hashtags in posts
 
 ## Not Working:
 - Viewing Images / Videos / Thumbnails
 - Search
 - Feeds / Lists
-- Chat
+- Chat (currently read-only and only shows the last message received in a conversation)
 
 ## TODO:
 - Add profile information (ie; name + avatar - bio) as first 2 options when viewing a profile
