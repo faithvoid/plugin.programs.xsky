@@ -158,8 +158,44 @@ def search_posts(session, query, cursor=None):
         xbmcgui.Dialog().ok(PLUGIN_NAME, 'Failed to search posts. Error: {}'.format(str(e)))
         return [], None
 
+def fetch_profile(session, user_handle):
+    url = BASE_URL + 'app.bsky.actor.getProfile'
+    headers = {
+        'Authorization': 'Bearer ' + session['accessJwt']
+    }
+    params = {
+        'actor': user_handle
+    }
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()  # Raise an error for bad status codes
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        xbmcgui.Dialog().ok(PLUGIN_NAME, 'Failed to fetch profile. Error: {}'.format(str(e)))
+        return None
+
 # Display posts in XBMC
-def display_posts(posts, cursor, action):
+def display_posts(posts, cursor, action, profile=None):
+    if profile:
+        # Display profile name with avatar as thumbnail
+        name = profile.get('displayName', 'Unknown')
+        avatar = profile.get('avatar', None)
+        bio = profile.get('description', 'No bio available')
+        blank = profile.get('', '---')
+        
+        name_item = xbmcgui.ListItem(name)
+        if avatar:
+            name_item.setThumbnailImage(avatar)
+        xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, PLUGIN_URL, name_item, isFolder=False)
+        
+        # Display profile bio
+        bio_item = xbmcgui.ListItem(bio, blank)
+        xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, PLUGIN_URL, bio_item, isFolder=False)
+
+        # Display blank space
+        bio_item = xbmcgui.ListItem(blank)
+        xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, PLUGIN_URL, bio_item, isFolder=False)
+    
     for post in posts:
         # Ensure the post structure is as expected
         if 'post' in post:
@@ -173,7 +209,7 @@ def display_posts(posts, cursor, action):
             
             list_item = xbmcgui.ListItem(title)
             if thumbnail:
-                list_item.setArt({'thumb': thumbnail})
+                list_item.setThumbnailImage(thumbnail)
             
             xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, PLUGIN_URL, list_item, isFolder=False)
     
@@ -190,7 +226,7 @@ def display_notifications(notifications):
     for notification in notifications:
         reason = notification.get('reason', 'No Title')
         user_handle = notification.get('author', {}).get('handle', 'Unknown user')
-        message = notification.get('record', {}).get('text', 'No additional information')
+        message = notification.get('record', {}).get('text', '')
         title = u"{}: {} - {}".format(reason.capitalize(), user_handle, message)
         list_item = xbmcgui.ListItem(title)
         xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, PLUGIN_URL, list_item, isFolder=False)
@@ -322,6 +358,69 @@ def upload_file(base_url, access_token, filename, img_bytes):
     )
     resp.raise_for_status()
     return resp.json()["blob"]
+
+# Fetch conversations from BlueSky
+def fetch_conversations(session):
+    url = CHAT_URL + 'chat.bsky.convo.listConvos'
+    headers = {
+        'Authorization': 'Bearer ' + session['accessJwt']
+    }
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()  # Raise an error for bad status codes
+        convos = response.json().get('convos', [])
+        
+        # Add the handle of the user messaging to each conversation
+        for convo in convos:
+            participants = convo.get('members', [])
+            convo['user_handle'] = next(
+                (participant['handle'] for participant in participants if participant['handle'] != session['handle']),
+                'Unknown'
+            )
+        
+        return convos
+    except requests.exceptions.RequestException as e:
+        xbmcgui.Dialog().ok(PLUGIN_NAME, 'Failed to fetch conversations. Error: {}'.format(str(e)))
+        return []
+
+# Fetch messages for a conversation from BlueSky
+def fetch_messages(session, convo_id):
+    url = CHAT_URL + 'chat.bsky.convo.getMessages'
+    headers = {
+        'Authorization': 'Bearer ' + session['accessJwt']
+    }
+    params = {
+        'convoId': convo_id
+    }
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()  # Raise an error for bad status codes
+        return response.json().get('messages', [])
+    except requests.exceptions.RequestException as e:
+        xbmcgui.Dialog().ok(PLUGIN_NAME, 'Failed to fetch messages. Error: {}'.format(str(e)))
+        return []
+
+# Display messages in XBMC
+def display_messages(messages):
+    for message in messages:
+        text = message.get('text', 'No text')
+        sent_at = message.get('sentAt', 'No date')
+        title = u"{}: {}".format(sent_at, text)  # Use Unicode string formatting
+        list_item = xbmcgui.ListItem(title)
+        xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, PLUGIN_URL, list_item, isFolder=False)
+    xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
+
+# Display conversations in XBMC
+def display_conversations(conversations):
+    for convo in conversations:
+        participant = convo.get('user_handle', 'Unknown')
+        last_message = convo.get('lastMessage', {}).get('text', 'No message')
+        title = u"{}: {}".format(participant, last_message)  # Use Unicode string formatting
+        url = "{}?action=messages&convo_id={}".format(PLUGIN_URL, convo.get('id'))
+        list_item = xbmcgui.ListItem(title)
+        xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, url, list_item, isFolder=True)
+    xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
+
     
 # Display menu in XBMC
 def display_menu():
@@ -329,6 +428,7 @@ def display_menu():
         ("Home", "home"),
 #        ("Search", "search"),
         ("Notifications", "notifications"),
+        ("Messages", "conversations"),
         ("Followers", "followers"),
         ("Following", "following"),
         ("Profile", "profile"),
@@ -371,13 +471,18 @@ def handle_action(action, session, user_handle, cursor=None):
         if following:
             display_user_list(following)
     elif action == "profile":
+        profile = fetch_profile(session, user_handle)
         posts, cursor = fetch_user_posts(session, user_handle, cursor)
         if posts:
-            display_posts(posts, cursor, action)
+            display_posts(posts, cursor, action, profile)
     elif action == "create_post":
         create_post(session)
     elif action == "create_post_media":
         create_post_media(session)
+    elif action == "conversations":
+        conversations = fetch_conversations(session)
+        if conversations:
+            display_conversations(conversations)
     else:
         display_menu()
 
