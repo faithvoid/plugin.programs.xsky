@@ -514,23 +514,22 @@ def fetch_messages(session, convo_id):
     try:
         response = requests.get(url, headers=headers, params=params)
         response.raise_for_status()  # Raise an error for bad status codes
-        return response.json().get('messages', [])
+        messages = response.json().get('messages', [])
+        
+        # Ensure each message has the sender's handle
+        for message in messages:
+            if 'sender' in message and 'did' in message['sender']:
+                sender_did = message['sender']['did']
+                sender_profile = fetch_profile(session, sender_did)
+                message['sender']['handle'] = sender_profile.get('handle', 'Unknown')
+        
+        return messages
     except requests.exceptions.RequestException as e:
         xbmcgui.Dialog().ok(PLUGIN_NAME, 'Failed to fetch messages. Error: {}'.format(str(e)))
         return []
 
-# Display messages in XBMC
-def display_messages(messages):
-    for message in messages:
-        text = message.get('text', 'No text')
-        sent_at = message.get('sentAt', 'No date')
-        title = u"{}: {}".format(sent_at, text)  # Use Unicode string formatting
-        list_item = xbmcgui.ListItem(title)
-        xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, PLUGIN_URL, list_item, isFolder=False)
-    xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
-
 # Display conversations in XBMC
-def display_conversations(conversations):
+def display_conversations(session, conversations):
     for convo in conversations:
         participant = convo.get('user_handle', 'Unknown')
         last_message = convo.get('lastMessage', {}).get('text', 'No message')
@@ -540,6 +539,46 @@ def display_conversations(conversations):
         xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, url, list_item, isFolder=True)
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
 
+# Display messages in XBMC
+def display_messages(messages):
+    for message in messages:
+        text = message.get('text', 'No text')
+        sent_at = message.get('sentAt', 'No date')
+        user_handle = message.get('sender', {}).get('handle', 'Unknown')
+
+        # Format the timestamp
+        try:
+            utc_time = datetime.datetime.strptime(sent_at, '%Y-%m-%dT%H:%M:%S.%fZ')
+        except ValueError:
+            utc_time = datetime.datetime.strptime(sent_at, '%Y-%m-%dT%H:%M:%SZ')
+
+        now = datetime.datetime.utcnow()
+        elapsed_time = now - utc_time
+        total_seconds = int(elapsed_time.total_seconds())
+
+        if total_seconds < 60:
+            time_suffix = "{}s".format(total_seconds)
+        elif total_seconds < 3600:
+            minutes_ago = total_seconds // 60
+            time_suffix = "{}m".format(minutes_ago)
+        elif total_seconds < 86400:
+            hours_ago = total_seconds // 3600
+            time_suffix = "{}h".format(hours_ago)
+        elif total_seconds < 2592000:
+            days_ago = total_seconds // 86400
+            time_suffix = "{}d".format(days_ago)
+        elif total_seconds < 31536000:
+            months_ago = total_seconds // 2592000
+            time_suffix = "{}mo".format(months_ago)
+        else:
+            years_ago = total_seconds // 31536000
+            time_suffix = "{}y".format(years_ago)
+
+        # Display formatted message
+        title = u"{}: {} - {}".format(user_handle, text, time_suffix)
+        list_item = xbmcgui.ListItem(title)
+        xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, PLUGIN_URL, list_item, isFolder=False)
+    xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
     
 # Display menu in XBMC
 def display_menu():
@@ -601,7 +640,11 @@ def handle_action(action, session, user_handle, cursor=None):
     elif action == "conversations":
         conversations = fetch_conversations(session)
         if conversations:
-            display_conversations(conversations)
+            display_conversations(session, conversations)
+    elif action == "messages":
+        convo_id = sys.argv[2].split('convo_id=')[1].split('&')[0]
+        messages = fetch_messages(session, convo_id)
+        display_messages(messages)
     elif action == "view_post":
         author = unicode(sys.argv[2].split('author=')[1].split('&')[0], 'utf-8')
         text = unicode(sys.argv[2].split('text=')[1], 'utf-8')
