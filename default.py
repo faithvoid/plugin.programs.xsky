@@ -283,12 +283,17 @@ def display_user_list(users):
     for user in users:
         user_handle = user.get('handle', 'Unknown user')
         display_name = user.get('displayName', 'No Name')
+        avatar = user.get('avatar', None)
+        
         title = u"{} ({})".format(display_name, user_handle)  # Use Unicode string formatting
         url = "{}?action=profile&user_handle={}".format(PLUGIN_URL, user_handle)
         list_item = xbmcgui.ListItem(title)
+        
+        if avatar:
+            list_item.setThumbnailImage(avatar)
+        
         xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, url, list_item, isFolder=True)
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
-
 
 # Resolve DID to URL for mention purposes.
 def resolve_did(handle, session):
