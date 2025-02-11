@@ -537,12 +537,50 @@ def display_conversations(session, conversations):
     for convo in conversations:
         participant = convo.get('user_handle', 'Unknown')
         last_message = convo.get('lastMessage', {}).get('text', 'No message')
-        title = u"[ {} ] - {}".format(participant, last_message)  # Use Unicode string formatting
+        sent_at = convo.get('lastMessage', {}).get('sentAt', 'No date')
+
+        # Format the timestamp
+        try:
+            utc_time = datetime.datetime.strptime(sent_at, '%Y-%m-%dT%H:%M:%S.%fZ')
+        except ValueError:
+            utc_time = datetime.datetime.strptime(sent_at, '%Y-%m-%dT%H:%M:%SZ')
+
+        now = datetime.datetime.utcnow()
+        elapsed_time = now - utc_time
+        total_seconds = int(elapsed_time.total_seconds())
+
+        if total_seconds < 60:
+            time_suffix = "{}s".format(total_seconds)
+        elif total_seconds < 3600:
+            minutes_ago = total_seconds // 60
+            time_suffix = "{}m".format(minutes_ago)
+        elif total_seconds < 86400:
+            hours_ago = total_seconds // 3600
+            time_suffix = "{}h".format(hours_ago)
+        elif total_seconds < 2592000:
+            days_ago = total_seconds // 86400
+            time_suffix = "{}d".format(days_ago)
+        elif total_seconds < 31536000:
+            months_ago = total_seconds // 2592000
+            time_suffix = "{}mo".format(months_ago)
+        else:
+            years_ago = total_seconds // 31536000
+            time_suffix = "{}y".format(years_ago)
+
+        # Fetch the profile to get the avatar
+        profile = fetch_profile(session, participant)
+        avatar = profile.get('avatar', None)
+
+        title = u"[ {} ] - {} - {}".format(participant, last_message, time_suffix)  # Use Unicode string formatting
         url = "{}?action=messages&convo_id={}".format(PLUGIN_URL, convo.get('id'))
         list_item = xbmcgui.ListItem(title)
+
+        if avatar:
+            list_item.setThumbnailImage(avatar)
+
         xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, url, list_item, isFolder=True)
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
-
+    
 # Display messages in XBMC
 def display_messages(session, convo_id, messages):
     # Add a "Reply" option as the first list item
