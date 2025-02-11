@@ -35,6 +35,7 @@ A functional, decentralized and easy to use social media network, right on your 
 - Viewing Images / Videos / Thumbnails
 - Search
 - Feeds / Lists
+- Emojis (crashes notifier.py + slightly breaks timestamps on the message with the emoji)
 
 ## TODO:
 - Fix thumbnails for posts
