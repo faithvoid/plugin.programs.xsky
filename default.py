@@ -425,7 +425,7 @@ def create_post_media(session):
             # this size limit is specified in the app.bsky.embed.images lexicon
             if len(img_bytes) > 1000000:
                 xbmcgui.Dialog().ok(PLUGIN_NAME, 'Image file size too large. 1000000 bytes (1MB) maximum, got: {}'.format(len(img_bytes)))
-                return
+                returnThis doesn't crash anymore, but it also doesn't refresh the messages page. 
             blob = upload_file(BASE_URL, session['accessJwt'], image_path, img_bytes)
             images.append({"alt": "", "image": blob})
 
@@ -533,14 +533,19 @@ def display_conversations(session, conversations):
     for convo in conversations:
         participant = convo.get('user_handle', 'Unknown')
         last_message = convo.get('lastMessage', {}).get('text', 'No message')
-        title = u"{}: {}".format(participant, last_message)  # Use Unicode string formatting
+        title = u"({}) - {}".format(participant, last_message)  # Use Unicode string formatting
         url = "{}?action=messages&convo_id={}".format(PLUGIN_URL, convo.get('id'))
         list_item = xbmcgui.ListItem(title)
         xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, url, list_item, isFolder=True)
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
 
 # Display messages in XBMC
-def display_messages(messages):
+def display_messages(session, convo_id, messages):
+    # Add a "Reply" option as the first list item
+    reply_url = "{}?action=reply&convo_id={}".format(PLUGIN_URL, convo_id)
+    reply_item = xbmcgui.ListItem("Reply")
+    xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, reply_url, reply_item, isFolder=False)
+    
     for message in messages:
         text = message.get('text', 'No text')
         sent_at = message.get('sentAt', 'No date')
@@ -579,6 +584,34 @@ def display_messages(messages):
         list_item = xbmcgui.ListItem(title)
         xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, PLUGIN_URL, list_item, isFolder=False)
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
+
+# Function to reply to a conversation
+def reply_to_conversation(session, convo_id):
+    keyboard = xbmc.Keyboard('', 'Enter your reply')
+    keyboard.doModal()
+    if keyboard.isConfirmed():
+        reply_text = keyboard.getText()
+        # trailing "Z" is preferred over "+00:00"
+        now = datetime.datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
+        message = {
+            "$type": "chat.bsky.convo.message",
+            "text": reply_text,
+            "createdAt": now,
+        }
+        url = CHAT_URL + 'chat.bsky.convo.sendMessage'
+        headers = {
+            'Authorization': 'Bearer ' + session['accessJwt']
+        }
+        data = {
+            'convoId': convo_id,
+            'message': message
+        }
+        try:
+            response = requests.post(url, headers=headers, json=data)
+            response.raise_for_status()  # Raise an error for bad status codes
+            xbmcgui.Dialog().ok(PLUGIN_NAME, 'Reply sent successfully!')
+        except requests.exceptions.RequestException as e:
+            xbmcgui.Dialog().ok(PLUGIN_NAME, 'Failed to send reply. Error: {}'.format(str(e)))
     
 # Display menu in XBMC
 def display_menu():
@@ -603,7 +636,7 @@ def display_menu():
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
 
 # Handle actions based on menu selection
-def handle_action(action, session, user_handle, cursor=None):
+def handle_action(action, session, user_handle, cursor=None, convo_id=None):
     if action == "home":
         posts, cursor = fetch_posts(session, cursor)
         if posts:
@@ -642,15 +675,19 @@ def handle_action(action, session, user_handle, cursor=None):
         if conversations:
             display_conversations(session, conversations)
     elif action == "messages":
-        convo_id = sys.argv[2].split('convo_id=')[1].split('&')[0]
+        if not convo_id:
+            convo_id = sys.argv[2].split('convo_id=')[1].split('&')[0]
         messages = fetch_messages(session, convo_id)
-        display_messages(messages)
+        display_messages(session, convo_id, messages)
     elif action == "view_post":
         author = unicode(sys.argv[2].split('author=')[1].split('&')[0], 'utf-8')
         text = unicode(sys.argv[2].split('text=')[1], 'utf-8')
         # Split text into multiple lines if necessary
         split_text = [text[i:i+64] for i in range(0, len(text), 64)]
         xbmcgui.Dialog().ok(author, *split_text)
+    elif action == "reply":
+        convo_id = sys.argv[2].split('convo_id=')[1].split('&')[0]
+        reply_to_conversation(session, convo_id)
     else:
         display_menu()
 
