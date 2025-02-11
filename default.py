@@ -184,8 +184,8 @@ def display_posts(posts, cursor, action, profile=None):
         # Display profile name with avatar as thumbnail
         name = profile.get('displayName', 'Unknown')
         avatar = profile.get('avatar', None)
-        bio = profile.get('description', 'No bio available')
-        blank = profile.get('', '---')
+        bio = profile.get('description', 'No bio available').replace('\n', ' | ')
+        blank = profile.get('', '-')
         
         name_item = xbmcgui.ListItem(name)
         if avatar:
@@ -199,7 +199,7 @@ def display_posts(posts, cursor, action, profile=None):
         # Display blank space
         bio_item = xbmcgui.ListItem(blank)
         xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, PLUGIN_URL, bio_item, isFolder=False)
-    
+
     for post in posts:
         # Ensure the post structure is as expected
         if 'post' in post:
@@ -258,15 +258,7 @@ def display_posts(posts, cursor, action, profile=None):
             list_item.addContextMenuItems(context_menu)
             
             xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, PLUGIN_URL, list_item, isFolder=False)
-    
-    # Add a "Next Page" item if there are more posts
-    if cursor:
-        next_page_url = "{}?action={}&cursor={}".format(PLUGIN_URL, action, cursor)
-        list_item = xbmcgui.ListItem("Next Page >>")
-        xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, next_page_url, list_item, isFolder=True)
-    
-    xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
-    
+
 # Display notifications in XBMC
 def display_notifications(notifications):
     for notification in notifications:
