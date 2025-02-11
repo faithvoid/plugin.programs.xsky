@@ -16,6 +16,7 @@ import json
 import urlparse
 import time
 import datetime
+import re
 from datetime import timedelta
 
 # Plugin constants
@@ -362,7 +363,7 @@ def create_post(session):
         post_text = keyboard.getText()
         
         # trailing "Z" is preferred over "+00:00"
-        now = datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
+        now = datetime.datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
         
         # Detect facets for hashtags and mentions
         facets = detect_facets(post_text, session)
@@ -398,7 +399,7 @@ def create_post_media(session):
         post_text = keyboard.getText()
         
         # trailing "Z" is preferred over "+00:00"
-        now = datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
+        now = datetime.datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
         
         # Detect facets for hashtags and mentions
         facets = detect_facets(post_text, session)
@@ -425,7 +426,7 @@ def create_post_media(session):
             # this size limit is specified in the app.bsky.embed.images lexicon
             if len(img_bytes) > 1000000:
                 xbmcgui.Dialog().ok(PLUGIN_NAME, 'Image file size too large. 1000000 bytes (1MB) maximum, got: {}'.format(len(img_bytes)))
-                returnThis doesn't crash anymore, but it also doesn't refresh the messages page. 
+                return
             blob = upload_file(BASE_URL, session['accessJwt'], image_path, img_bytes)
             images.append({"alt": "", "image": blob})
 
