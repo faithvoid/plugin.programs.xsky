@@ -622,7 +622,7 @@ def display_messages(session, convo_id, messages):
             time_suffix = "{}y".format(years_ago)
 
         # Display formatted message
-        title = u"{}: {} - {}".format(user_handle, text, time_suffix)
+        title = u"[ {} ] - {} - {}".format(user_handle, text, time_suffix)
         list_item = xbmcgui.ListItem(title)
         xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, PLUGIN_URL, list_item, isFolder=False)
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
