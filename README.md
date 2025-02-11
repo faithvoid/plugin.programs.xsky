@@ -29,7 +29,7 @@ A functional, decentralized and easy to use social media network, right on your 
 - Viewing Followers / Following + user profiles
 - Making text/image posts & tagging users and hashtags in those posts
 - Viewing posts as list items + dialog windows
-- Sending / receiving messages
+- Sending / receiving messages (albeit slowly, takes approximately 10-15 seconds to retrieve messages in a conversation)
 
 ## Not Working:
 - Viewing Images / Videos / Thumbnails
@@ -37,13 +37,14 @@ A functional, decentralized and easy to use social media network, right on your 
 - Feeds / Lists
 
 ## TODO:
+- Fix thumbnails
+- Show user avatar as thumbnail if the image doesn't contain media(?)
 - Improve visual language (try to match 1:1 to the Bluesky website where possible)
 - Add notification / chat indicators (ie; "Chat (5)" / "Notifications (2)"
-- Add profile information (ie; name + avatar - bio) as first 2 options when viewing a profile
+- Add profile information (ie; name + avatar - bio) as first 2 options when viewing a profile (currently added, but gets glitchy during multi-line bios)
 - Add some way to differentiate between a post and a reply
-- Add "Follow / Unfollow User", "Block User" & "Reply to User" as context menu options
 - Add reply chains(?)
+- Add "Follow / Unfollow User", "Block User", "Reply to User" & "Message User" as context menu options
 - Store login data somewhere that isn't just a plaintext file?
 - [Find a way to leverage Bluesky's chat functionality for an IM service(?)](https://github.com/faithvoid/plugin.programs.xchat)
-- Show user avatar as thumbnail if the image doesn't contain media(?)
 - Add notification system that alerts the user as to whenever they get a reply / follow / message while outside of the plugin (this will probably have to be it's own plugin)
