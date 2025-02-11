@@ -588,7 +588,7 @@ def display_messages(session, convo_id, messages):
         list_item = xbmcgui.ListItem(title)
         xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, PLUGIN_URL, list_item, isFolder=False)
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
-
+    
 # Function to reply to a conversation
 def reply_to_conversation(session, convo_id):
     keyboard = xbmc.Keyboard('', 'Enter your reply')
