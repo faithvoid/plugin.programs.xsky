@@ -534,7 +534,7 @@ def display_conversations(session, conversations):
     for convo in conversations:
         participant = convo.get('user_handle', 'Unknown')
         last_message = convo.get('lastMessage', {}).get('text', 'No message')
-        title = u"({}) - {}".format(participant, last_message)  # Use Unicode string formatting
+        title = u"[ {} ] - {}".format(participant, last_message)  # Use Unicode string formatting
         url = "{}?action=messages&convo_id={}".format(PLUGIN_URL, convo.get('id'))
         list_item = xbmcgui.ListItem(title)
         xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, url, list_item, isFolder=True)
