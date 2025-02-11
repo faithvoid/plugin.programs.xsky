@@ -3,6 +3,7 @@ import xbmcgui
 import requests
 import os
 import time
+import unicodedata
 
 # Script constants
 SCRIPT_NAME = 'xChat'
@@ -80,6 +81,11 @@ def fetch_messages(session, convo_id):
                 sender_profile = profiles.get(message['sender']['did'], {})
                 message['sender']['handle'] = sender_profile.get('handle', 'Unknown')
 
+        # Sanitize message text
+        for message in messages:
+            if 'text' in message:
+                message['text'] = sanitize_text(message['text'])
+
         return messages
     except requests.exceptions.RequestException as e:
         xbmc.log("{}: Failed to fetch messages. Error: {}".format(SCRIPT_NAME, str(e)), xbmc.LOGERROR)
@@ -127,6 +133,10 @@ def save_message_id(message_id):
     with open(MESSAGES_FILE, 'a') as f:
         f.write(message_id + '\n')
 
+# Sanitize text by removing non-ASCII characters
+def sanitize_text(text):
+    return ''.join(char for char in text if ord(char) < 128)
+
 # Main service loop
 def main():
     username, app_password = load_credentials()
@@ -155,7 +165,7 @@ def main():
                     save_message_id(message_id)
                     user_handle = message.get('sender', {}).get('handle', 'Unknown')
                     text = message.get('text', 'No text')
-                    xbmc.executebuiltin('Notification("{0}", "{1}", 5000, "")'.format(user_handle, text))
+                    xbmc.executebuiltin('Notification("{0}", "{1}", 5000, "")'.format(user_handle, sanitize_text(text)))
         
         xbmc.sleep(CHECK_INTERVAL * 1000)
 
