@@ -37,12 +37,11 @@ A functional, decentralized and easy to use social media network, right on your 
 - Feeds / Lists
 
 ## TODO:
-- Fix thumbnails
-- Show user avatar as thumbnail if the image doesn't contain media(?)
+- Fix thumbnails for posts
+- Show user avatar as thumbnail if the image doesn't contain media (currently shows avatars in Following / Followers, but is glitchy in posts / profiles)
 - Add pagination to messages to reduce load times
 - Improve visual language (try to match 1:1 to the Bluesky website where possible)
 - Add notification / chat indicators (ie; "Chat (5)" / "Notifications (2)"
-- Add profile information (ie; name + avatar - bio) as first 2 options when viewing a profile (currently added, but gets glitchy during multi-line bios)
 - Add some way to differentiate between a post and a reply
 - Add reply chains(?)
 - Add "Follow / Unfollow User", "Block User", "Reply to User" & "Message User" as context menu options
