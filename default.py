@@ -178,7 +178,7 @@ def fetch_profile(session, user_handle):
         xbmcgui.Dialog().ok(PLUGIN_NAME, 'Failed to fetch profile. Error: {}'.format(str(e)))
         return None
 
-# Display posts in XBMC
+# Display posts
 def display_posts(posts, cursor, action, profile=None):
     if profile:
         # Display profile name with avatar as thumbnail
@@ -259,7 +259,7 @@ def display_posts(posts, cursor, action, profile=None):
             
             xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, PLUGIN_URL, list_item, isFolder=False)
 
-# Display notifications in XBMC
+# Display notifications
 def display_notifications(notifications):
     for notification in notifications:
         reason = notification.get('reason', 'No Title')
@@ -270,7 +270,7 @@ def display_notifications(notifications):
         xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, PLUGIN_URL, list_item, isFolder=False)
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
 
-# Display followers or following in XBMC
+# Display followers or following
 def display_user_list(users):
     for user in users:
         user_handle = user.get('handle', 'Unknown user')
@@ -529,7 +529,7 @@ def fetch_messages(session, convo_id):
         xbmcgui.Dialog().ok(PLUGIN_NAME, 'Failed to fetch messages. Error: {}'.format(str(e)))
         return []
         
-# Display conversations in XBMC
+# Display conversations
 def display_conversations(session, conversations):
     for convo in conversations:
         participant = convo.get('user_handle', 'Unknown')
@@ -578,7 +578,7 @@ def display_conversations(session, conversations):
         xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, url, list_item, isFolder=True)
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
     
-# Display messages in XBMC
+# Display messages
 def display_messages(session, convo_id, messages):
     # Add a "Reply" option as the first list item
     reply_url = "{}?action=reply&convo_id={}".format(PLUGIN_URL, convo_id)
@@ -652,7 +652,7 @@ def reply_to_conversation(session, convo_id):
         except requests.exceptions.RequestException as e:
             xbmcgui.Dialog().ok(PLUGIN_NAME, 'Failed to send reply. Error: {}'.format(str(e)))
     
-# Display menu in XBMC
+# Display menu
 def display_menu():
     menu_items = [
         ("Home", "home"),
@@ -663,7 +663,8 @@ def display_menu():
         ("Following", "following"),
         ("Profile", "profile"),
         ("Post", "create_post"),
-        ("Post (Image)", "create_post_media")
+        ("Post (Image)", "create_post_media"),
+        ("Settings", "settings")
     ]
     
     for item in menu_items:
@@ -673,6 +674,30 @@ def display_menu():
         xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, url, list_item, isFolder=True)
     
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
+    
+# Display settings menu
+def display_settings():
+    settings_items = [
+        ("Enable Notifications", "enable_notifications")
+    ]
+    
+    for item in settings_items:
+        title, endpoint = item
+        url = "{}?action={}".format(PLUGIN_URL, endpoint)
+        list_item = xbmcgui.ListItem(title)
+        xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, url, list_item, isFolder=False)
+    
+    xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
+
+# enable_notifications action
+def execute_action(action):
+    if action == "enable_notifications":
+        run_notifier()
+
+# Run notifier.py
+def run_notifier():
+    script_path = os.path.join(os.path.dirname(__file__), 'notifier.py')
+    xbmc.executebuiltin('RunScript({})'.format(script_path))
 
 # Handle actions based on menu selection
 def handle_action(action, session, user_handle, cursor=None, convo_id=None):
@@ -727,9 +752,11 @@ def handle_action(action, session, user_handle, cursor=None, convo_id=None):
     elif action == "reply":
         convo_id = sys.argv[2].split('convo_id=')[1].split('&')[0]
         reply_to_conversation(session, convo_id)
+    elif action == "settings":
+        display_settings()
     else:
         display_menu()
-
+        
 # Main function
 def main():
     action = None
@@ -754,7 +781,10 @@ def main():
 
     if not user_handle:
         user_handle = session.get('handle', 'unknown_user')
-    handle_action(action, session, user_handle, cursor)
+    if action in ["enable_notifications"]:
+        execute_action(action)
+    else:
+        handle_action(action, session, user_handle, cursor)
 
 if __name__ == '__main__':
     main()
