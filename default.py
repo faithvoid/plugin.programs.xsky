@@ -699,14 +699,14 @@ def invite_to_game(session, convo_id):
     # Read the games.txt file to get the list of games
     games_file = os.path.join(os.path.dirname(__file__), 'games.txt')
     with open(games_file, 'r') as f:
-        games = [line.strip().split('", "')[0].strip('"') for line in f.readlines()]
+        games = [line.strip() for line in f.readlines() if '", "' in line]
     
     # Display a dialog to select a game
     dialog = xbmcgui.Dialog()
-    selected_game = dialog.select("Select a game to invite", games)
+    selected_game = dialog.select("Select a game to invite", [line.split('", "')[0].strip('"') for line in games])
     
     if selected_game >= 0:
-        game_title = games[selected_game]
+        game_title = games[selected_game].split('", "')[0].strip('"')
         reply_text = "{} would like to play '{}'".format(session['handle'], game_title)
         
         # trailing "Z" is preferred over "+00:00"
@@ -728,9 +728,15 @@ def invite_to_game(session, convo_id):
             response = requests.post(url, headers=headers, json=data)
             response.raise_for_status()  # Raise an error for bad status codes
             xbmcgui.Dialog().ok(PLUGIN_NAME, 'Invite sent successfully!')
+            
+            # Ask if the user wants to launch the game
+            if dialog.yesno(PLUGIN_NAME, 'Do you want to launch the game now?'):
+                game_path = [line.split('", "')[1].strip('"') for line in games if line.split('", "')[0].strip('"') == game_title][0]
+                launch_game(game_path)
+                
         except requests.exceptions.RequestException as e:
             xbmcgui.Dialog().ok(PLUGIN_NAME, 'Failed to send invite. Error: {}'.format(str(e)))
-    
+
 # Display menu in XBMC
 def display_menu():
     menu_items = [
