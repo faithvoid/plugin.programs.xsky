@@ -9,10 +9,11 @@ import unicodedata
 SCRIPT_NAME = 'xChat'
 BASE_URL = 'https://bsky.social/xrpc/'
 CHAT_URL = 'https://api.bsky.chat/xrpc/'
-CHECK_INTERVAL = 5  # Interval in seconds to check for new messages
+CHECK_INTERVAL = 5  # Interval in seconds to check for new messages and notifications
 LOGIN_FILE = os.path.join(os.path.dirname(__file__), 'login.txt')
 MESSAGES_FILE = os.path.join(os.path.dirname(__file__), 'messages.txt')
 HANDLES_FILE = os.path.join(os.path.dirname(__file__), 'handles.txt')
+NOTIFICATIONS_FILE = os.path.join(os.path.dirname(__file__), 'notifications.txt')  # File to keep track of notifications
 
 # Load login credentials
 def load_credentials():
@@ -38,6 +39,20 @@ def authenticate(username, app_password):
     except requests.exceptions.RequestException as e:
         xbmc.log("{}: Authentication failed. Error: {}".format(SCRIPT_NAME, str(e)), xbmc.LOGERROR)
         return None
+
+# Fetch notifications from BlueSky
+def fetch_notifications(session):
+    url = BASE_URL + 'app.bsky.notification.listNotifications'
+    headers = {
+        'Authorization': 'Bearer ' + session['accessJwt']
+    }
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()  # Raise an error for bad status codes
+        return response.json().get('notifications', [])
+    except requests.exceptions.RequestException as e:
+        xbmcgui.Dialog().ok(SCRIPT_NAME, 'Failed to fetch notifications. Error: {}'.format(str(e)))
+        return []
 
 # Fetch conversations from BlueSky
 def fetch_conversations(session):
@@ -133,6 +148,19 @@ def save_message_id(message_id):
     with open(MESSAGES_FILE, 'a') as f:
         f.write(message_id + '\n')
 
+# Load old notification IDs from file
+def load_old_notification_ids():
+    if os.path.exists(NOTIFICATIONS_FILE):
+        with open(NOTIFICATIONS_FILE, 'r') as f:
+            return set(line.strip() for line in f)
+    return set()
+
+# Save new notification ID to file
+def save_notification_id(notification_id):
+    if notification_id is not None:
+        with open(NOTIFICATIONS_FILE, 'a') as f:
+            f.write(str(notification_id) + '\n')
+
 # Sanitize text by removing non-ASCII characters
 def sanitize_text(text):
     return ''.join(char for char in text if ord(char) < 128)
@@ -149,6 +177,7 @@ def main():
         return
 
     old_message_ids = load_old_message_ids()
+    old_notification_ids = load_old_notification_ids()
     user_did = session.get('did')
     while True:
         convos = fetch_conversations(session)
@@ -166,6 +195,20 @@ def main():
                     user_handle = message.get('sender', {}).get('handle', 'Unknown')
                     text = message.get('text', 'No text')
                     xbmc.executebuiltin('Notification("{0}", "{1}", 5000, "")'.format(user_handle, sanitize_text(text)))
+        
+        notifications = fetch_notifications(session)
+        for notification in notifications:
+            notification_id = notification.get('cid')
+            if notification_id not in old_notification_ids:
+                old_notification_ids.add(notification_id)
+                save_notification_id(notification_id)
+                reason = notification.get('reason', 'No Title')
+                author = notification.get('author', {})
+                user_handle = author.get('handle', 'Unknown user')
+                message = notification.get('record', {}).get('text', '')
+                
+                notification_text = "{}: {}".format(reason.capitalize(), user_handle, message)
+                xbmc.executebuiltin('Notification("xSky", "{}", 5000, "N/A")'.format(sanitize_text(notification_text)))
         
         xbmc.sleep(CHECK_INTERVAL * 1000)
 
