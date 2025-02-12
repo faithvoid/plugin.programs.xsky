@@ -178,7 +178,7 @@ def fetch_profile(session, user_handle):
         xbmcgui.Dialog().ok(PLUGIN_NAME, 'Failed to fetch profile. Error: {}'.format(str(e)))
         return None
 
-# Display posts
+# Display posts in XBMC
 def display_posts(posts, cursor, action, profile=None):
     if profile:
         # Display profile name with avatar as thumbnail
@@ -211,7 +211,10 @@ def display_posts(posts, cursor, action, profile=None):
             try:
                 utc_time = datetime.datetime.strptime(created_at, '%Y-%m-%dT%H:%M:%S.%fZ')
             except ValueError:
-                utc_time = datetime.datetime.strptime(created_at, '%Y-%m-%dT%H:%M:%SZ')
+                try:
+                    utc_time = datetime.datetime.strptime(created_at, '%Y-%m-%dT%H:%M:%SZ')
+                except ValueError:
+                    utc_time = datetime.datetime.strptime(created_at[:-6], '%Y-%m-%dT%H:%M:%S.%f')
             
             # Calculate elapsed time
             now = datetime.datetime.utcnow()
@@ -258,8 +261,16 @@ def display_posts(posts, cursor, action, profile=None):
             list_item.addContextMenuItems(context_menu)
             
             xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, PLUGIN_URL, list_item, isFolder=False)
-
-# Display notifications
+    
+    # Add a "Next Page" item if there are more posts
+    if cursor:
+        next_page_url = "{}?action={}&cursor={}".format(PLUGIN_URL, action, cursor)
+        list_item = xbmcgui.ListItem("Next Page >>")
+        xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, next_page_url, list_item, isFolder=True)
+    
+    xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
+    
+# Display notifications in XBMC
 def display_notifications(notifications):
     for notification in notifications:
         reason = notification.get('reason', 'No Title')
@@ -270,7 +281,7 @@ def display_notifications(notifications):
         xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, PLUGIN_URL, list_item, isFolder=False)
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
 
-# Display followers or following
+# Display followers or following in XBMC
 def display_user_list(users):
     for user in users:
         user_handle = user.get('handle', 'Unknown user')
@@ -286,6 +297,7 @@ def display_user_list(users):
         
         xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, url, list_item, isFolder=True)
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
+
 
 # Resolve DID to URL for mention purposes.
 def resolve_did(handle, session):
@@ -528,8 +540,8 @@ def fetch_messages(session, convo_id):
     except requests.exceptions.RequestException as e:
         xbmcgui.Dialog().ok(PLUGIN_NAME, 'Failed to fetch messages. Error: {}'.format(str(e)))
         return []
-        
-# Display conversations
+
+# Display conversations in XBMC
 def display_conversations(session, conversations):
     for convo in conversations:
         participant = convo.get('user_handle', 'Unknown')
@@ -568,7 +580,7 @@ def display_conversations(session, conversations):
         profile = fetch_profile(session, participant)
         avatar = profile.get('avatar', None)
 
-        title = u"[ {} ] - {} - {}".format(participant, last_message, time_suffix)  # Use Unicode string formatting
+        title = u"[{}] - {} - {}".format(participant, last_message, time_suffix)  # Use Unicode string formatting
         url = "{}?action=messages&convo_id={}".format(PLUGIN_URL, convo.get('id'))
         list_item = xbmcgui.ListItem(title)
 
@@ -577,8 +589,8 @@ def display_conversations(session, conversations):
 
         xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, url, list_item, isFolder=True)
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
-    
-# Display messages
+
+# Display messages in XBMC
 def display_messages(session, convo_id, messages):
     # Add a "Reply" option as the first list item
     reply_url = "{}?action=reply&convo_id={}".format(PLUGIN_URL, convo_id)
@@ -619,11 +631,11 @@ def display_messages(session, convo_id, messages):
             time_suffix = "{}y".format(years_ago)
 
         # Display formatted message
-        title = u"[ {} ] - {} - {}".format(user_handle, text, time_suffix)
+        title = u"[{}] - {} - {}".format(user_handle, text, time_suffix)
         list_item = xbmcgui.ListItem(title)
         xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, PLUGIN_URL, list_item, isFolder=False)
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
-    
+
 # Function to reply to a conversation
 def reply_to_conversation(session, convo_id):
     keyboard = xbmc.Keyboard('', 'Enter your reply')
@@ -649,10 +661,13 @@ def reply_to_conversation(session, convo_id):
             response = requests.post(url, headers=headers, json=data)
             response.raise_for_status()  # Raise an error for bad status codes
             xbmcgui.Dialog().ok(PLUGIN_NAME, 'Reply sent successfully!')
+            # Refresh the conversation
+            messages = fetch_messages(session, convo_id)
+            display_messages(session, convo_id, messages)
         except requests.exceptions.RequestException as e:
             xbmcgui.Dialog().ok(PLUGIN_NAME, 'Failed to send reply. Error: {}'.format(str(e)))
     
-# Display menu
+# Display menu in XBMC
 def display_menu():
     menu_items = [
         ("Home", "home"),
@@ -674,7 +689,7 @@ def display_menu():
         xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, url, list_item, isFolder=True)
     
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
-    
+
 # Display settings menu
 def display_settings():
     settings_items = [
@@ -764,7 +779,7 @@ def handle_action(action, session, user_handle, cursor=None, convo_id=None):
         display_settings()
     else:
         display_menu()
-        
+
 # Main function
 def main():
     action = None
@@ -789,10 +804,7 @@ def main():
 
     if not user_handle:
         user_handle = session.get('handle', 'unknown_user')
-    if action in ["enable_notifications"]:
-        execute_action(action)
-    else:
-        handle_action(action, session, user_handle, cursor)
+    handle_action(action, session, user_handle, cursor)
 
 if __name__ == '__main__':
     main()
