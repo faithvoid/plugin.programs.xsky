@@ -596,6 +596,11 @@ def display_messages(session, convo_id, messages):
     reply_url = "{}?action=reply&convo_id={}".format(PLUGIN_URL, convo_id)
     reply_item = xbmcgui.ListItem("Reply")
     xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, reply_url, reply_item, isFolder=False)
+
+    # Add an "Invite to Game" option as the second list item
+    invite_url = "{}?action=invite&convo_id={}".format(PLUGIN_URL, convo_id)
+    invite_item = xbmcgui.ListItem("Invite To Game")
+    xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, invite_url, invite_item, isFolder=False)
     
     for message in messages:
         text = message.get('text', 'No text')
@@ -633,9 +638,31 @@ def display_messages(session, convo_id, messages):
         # Display formatted message
         title = u"[{}] - {} - {}".format(user_handle, text, time_suffix)
         list_item = xbmcgui.ListItem(title)
+        
+        # Check if the message is an invite to play a game
+        match = re.match(r"(.*) would like to play '(.*)'", text)
+        if match:
+            inviter = match.group(1)
+            game_title = match.group(2)
+            
+            # Read the games.txt file to get the game path
+            games_file = os.path.join(os.path.dirname(__file__), 'games.txt')
+            with open(games_file, 'r') as f:
+                games = [line.strip().split(', ') for line in f.readlines()]
+            
+            game_path = None
+            for game in games:
+                if game[0].strip('"') == game_title:
+                    game_path = game[1].strip('"')
+                    break
+            
+            if game_path:
+                context_menu = [(u'Launch Game', u'XBMC.RunPlugin({}?action=launch_game&game_path={})'.format(PLUGIN_URL, game_path))]
+                list_item.addContextMenuItems(context_menu)
+        
         xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, PLUGIN_URL, list_item, isFolder=False)
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
-
+    
 # Function to reply to a conversation
 def reply_to_conversation(session, convo_id):
     keyboard = xbmc.Keyboard('', 'Enter your reply')
@@ -663,6 +690,43 @@ def reply_to_conversation(session, convo_id):
             xbmcgui.Dialog().ok(PLUGIN_NAME, 'Reply sent successfully!')
         except requests.exceptions.RequestException as e:
             xbmcgui.Dialog().ok(PLUGIN_NAME, 'Failed to send reply. Error: {}'.format(str(e)))
+
+# Function to invite to a game
+def invite_to_game(session, convo_id):
+    # Read the games.txt file to get the list of games
+    games_file = os.path.join(os.path.dirname(__file__), 'games.txt')
+    with open(games_file, 'r') as f:
+        games = [line.strip().split(', ')[0].strip('"') for line in f.readlines()]
+    
+    # Display a dialog to select a game
+    dialog = xbmcgui.Dialog()
+    selected_game = dialog.select("Select a game to invite", games)
+    
+    if selected_game >= 0:
+        game_title = games[selected_game]
+        reply_text = "{} would like to play '{}'".format(session['handle'], game_title)
+        
+        # trailing "Z" is preferred over "+00:00"
+        now = datetime.datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
+        message = {
+            "$type": "chat.bsky.convo.message",
+            "text": reply_text,
+            "createdAt": now,
+        }
+        url = CHAT_URL + 'chat.bsky.convo.sendMessage'
+        headers = {
+            'Authorization': 'Bearer ' + session['accessJwt']
+        }
+        data = {
+            'convoId': convo_id,
+            'message': message
+        }
+        try:
+            response = requests.post(url, headers=headers, json=data)
+            response.raise_for_status()  # Raise an error for bad status codes
+            xbmcgui.Dialog().ok(PLUGIN_NAME, 'Invite sent successfully!')
+        except requests.exceptions.RequestException as e:
+            xbmcgui.Dialog().ok(PLUGIN_NAME, 'Failed to send invite. Error: {}'.format(str(e)))
     
 # Display menu in XBMC
 def display_menu():
@@ -722,6 +786,14 @@ def stop_notifier():
     script_path = os.path.join(os.path.dirname(__file__), 'notifier.py')
     xbmc.executebuiltin('RunScript({})'.format(script_path))
 
+# Function to launch a game
+def launch_game(game_path):
+    game_path_corrected = game_path.replace('/', '\\')
+    if os.path.exists(game_path_corrected):
+        xbmc.executebuiltin('XBMC.RunXBE("{}")'.format(game_path_corrected))
+    else:
+        xbmcgui.Dialog().ok(PLUGIN_NAME, 'Error', 'Unable to run xbe : "{}"'.format(game_path_corrected))
+
 # Handle actions based on menu selection
 def handle_action(action, session, user_handle, cursor=None, convo_id=None):
     if action == "home":
@@ -777,6 +849,9 @@ def handle_action(action, session, user_handle, cursor=None, convo_id=None):
         reply_to_conversation(session, convo_id)
     elif action == "settings":
         display_settings()
+    elif action == "launch_game":
+        game_path = sys.argv[2].split('game_path=')[1].split('&')[0]
+        launch_game(game_path)
     else:
         display_menu()
 
