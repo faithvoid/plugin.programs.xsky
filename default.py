@@ -661,9 +661,6 @@ def reply_to_conversation(session, convo_id):
             response = requests.post(url, headers=headers, json=data)
             response.raise_for_status()  # Raise an error for bad status codes
             xbmcgui.Dialog().ok(PLUGIN_NAME, 'Reply sent successfully!')
-            # Refresh the conversation
-            messages = fetch_messages(session, convo_id)
-            display_messages(session, convo_id, messages)
         except requests.exceptions.RequestException as e:
             xbmcgui.Dialog().ok(PLUGIN_NAME, 'Failed to send reply. Error: {}'.format(str(e)))
     
