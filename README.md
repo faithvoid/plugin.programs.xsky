@@ -52,3 +52,5 @@ A functional, decentralized and easy to use social media network, right on your 
 - Store login data somewhere that isn't just a plaintext file?
 - [Find a way to leverage Bluesky's chat functionality for an IM service(?)](https://github.com/faithvoid/plugin.programs.xchat)
 - Implement group DMs / media DMs once they're implemented into Bluesky
+- Add "Install Game" option to Settings (aka writing a game name and path to games.txt)
+- Ask user if they'd like to launch game when inviting user, and when accepting an invitation, if the user doesn't have the game 'installed', asks if they'd like to select the directory where the game is located.
