@@ -20,6 +20,7 @@ A functional, decentralized and easy to use social media network, right on your 
 - Copy the xSky folder to Q:/scripts/plugins/programs
 - (Optional) if using a non-Bluesky AT protocol site, you'll have to modify the BASE_URL in default.py to point at that site! Support outside of Bluesky is entirely unsupported, but testing & contributing is encouraged!
 - Run the add-on and enjoy!
+- (Optional) Run "notifier.py" from the XBMC File Browser (Q:/plugins/programs/xSky/notifier.py) to receive message notifications. (Hopefully this can be added as a menu toggle!)
 
 ## Working:
 - Logging in (via inserting your credentials into login.txt)
@@ -35,14 +36,14 @@ A functional, decentralized and easy to use social media network, right on your 
 - Viewing Images / Videos / Thumbnails
 - Search
 - Feeds / Lists
-- Emojis (crashes notifier.py + slightly breaks timestamps on the message with the emoji)
+- Emojis (slightly breaks timestamps on the message with the emoji)
 
 ## TODO:
 - Fix thumbnails for posts
 - Show user avatar as thumbnail if the image doesn't contain media (currently shows avatars in Following / Followers, but is glitchy in posts / profiles)
 - Add pagination to messages to reduce load times
 - Improve visual language (try to match 1:1 to the Bluesky website where possible)
-- Add notification / chat indicators (ie; "Chat (5)" / "Notifications (2)"
+- Add notification / chat indicators (ie; "Chat (5)" / "Notifications (2)")
 - Add some way to differentiate between a post and a reply
 - Add reply chains(?)
 - Add "Follow / Unfollow User", "Block User", "Reply to User" & "Message User" as context menu options
