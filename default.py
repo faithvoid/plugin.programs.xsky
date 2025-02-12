@@ -17,10 +17,11 @@ import urlparse
 import time
 import datetime
 import re
+import urllib
 from datetime import timedelta
 
 # Plugin constants
-PLUGIN_ID = 'plugin.video.xSky'
+PLUGIN_ID = 'plugin.programs.xSky'
 PLUGIN_NAME = 'xSky'
 PLUGIN_VERSION = '1.0.0'
 PLUGIN_URL = sys.argv[0]
@@ -648,7 +649,7 @@ def display_messages(session, convo_id, messages):
             # Read the games.txt file to get the game path
             games_file = os.path.join(os.path.dirname(__file__), 'games.txt')
             with open(games_file, 'r') as f:
-                games = [line.strip().split(', ') for line in f.readlines()]
+                games = [line.strip().split('", "') for line in f.readlines()]
             
             game_path = None
             for game in games:
@@ -657,12 +658,14 @@ def display_messages(session, convo_id, messages):
                     break
             
             if game_path:
-                context_menu = [(u'Launch Game', u'XBMC.RunPlugin({}?action=launch_game&game_path={})'.format(PLUGIN_URL, game_path))]
+                game_path_encoded = urllib.quote_plus(game_path)
+                context_menu = [(u'Launch Game', u'XBMC.RunPlugin({}?action=launch_game&game_path={})'.format(PLUGIN_URL, game_path_encoded))]
                 list_item.addContextMenuItems(context_menu)
         
         xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, PLUGIN_URL, list_item, isFolder=False)
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
-    
+
+
 # Function to reply to a conversation
 def reply_to_conversation(session, convo_id):
     keyboard = xbmc.Keyboard('', 'Enter your reply')
@@ -696,7 +699,7 @@ def invite_to_game(session, convo_id):
     # Read the games.txt file to get the list of games
     games_file = os.path.join(os.path.dirname(__file__), 'games.txt')
     with open(games_file, 'r') as f:
-        games = [line.strip().split(', ')[0].strip('"') for line in f.readlines()]
+        games = [line.strip().split('", "')[0].strip('"') for line in f.readlines()]
     
     # Display a dialog to select a game
     dialog = xbmcgui.Dialog()
@@ -779,7 +782,7 @@ def execute_action(action):
 # Run notifier.py
 def run_notifier():
     script_path = os.path.join(os.path.dirname(__file__), 'notifier.py')
-    xbmc.executebuiltin('RunScript({})'.format(script_path))
+    xbmc.executebuiltin('RunScript("{}")'.format(script_path.replace("\\", "\\\\")))
 
 # Stop notifier.py
 def stop_notifier():
@@ -788,7 +791,7 @@ def stop_notifier():
 
 # Function to launch a game
 def launch_game(game_path):
-    game_path_corrected = game_path.replace('/', '\\')
+    game_path_corrected = urllib.unquote_plus(game_path).replace('/', '\\')
     if os.path.exists(game_path_corrected):
         xbmc.executebuiltin('XBMC.RunXBE("{}")'.format(game_path_corrected))
     else:
@@ -847,10 +850,13 @@ def handle_action(action, session, user_handle, cursor=None, convo_id=None):
     elif action == "reply":
         convo_id = sys.argv[2].split('convo_id=')[1].split('&')[0]
         reply_to_conversation(session, convo_id)
+    elif action == "invite":
+        convo_id = sys.argv[2].split('convo_id=')[1].split('&')[0]
+        invite_to_game(session, convo_id)
     elif action == "settings":
         display_settings()
     elif action == "launch_game":
-        game_path = sys.argv[2].split('game_path=')[1].split('&')[0]
+        game_path = urllib.unquote_plus(sys.argv[2].split('game_path=')[1].split('&')[0])
         launch_game(game_path)
     else:
         display_menu()
