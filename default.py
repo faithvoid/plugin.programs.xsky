@@ -678,7 +678,8 @@ def display_menu():
 # Display settings menu
 def display_settings():
     settings_items = [
-        ("Enable Notifications", "enable_notifications")
+        ("Enable Chat Notifications", "enable_notifications"),
+        ("Disable Chat Notifications", "disable_notifications")
     ]
     
     for item in settings_items:
@@ -689,13 +690,20 @@ def display_settings():
     
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
 
-# enable_notifications action
+# Execute action to enable/disable notifier
 def execute_action(action):
     if action == "enable_notifications":
         run_notifier()
+    if action == "disable_notifications":
+        stop_notifier()
 
 # Run notifier.py
 def run_notifier():
+    script_path = os.path.join(os.path.dirname(__file__), 'notifier.py')
+    xbmc.executebuiltin('RunScript({})'.format(script_path))
+
+# Stop notifier.py
+def stop_notifier():
     script_path = os.path.join(os.path.dirname(__file__), 'notifier.py')
     xbmc.executebuiltin('RunScript({})'.format(script_path))
 
