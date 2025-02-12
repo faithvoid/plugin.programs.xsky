@@ -51,4 +51,4 @@ A functional, decentralized and easy to use social media network, right on your 
 - Add "Follow / Unfollow User", "Block User", "Reply to User" & "Message User" as context menu options
 - Store login data somewhere that isn't just a plaintext file?
 - [Find a way to leverage Bluesky's chat functionality for an IM service(?)](https://github.com/faithvoid/plugin.programs.xchat)
-- Add notification system that alerts the user as to whenever they get a reply / follow / message while outside of the plugin (notifier.py currently support messages, looking into notifications as well, but that may not happen due to RAM constraints)
+- Implement group DMs / media DMs once they're implemented into Bluesky
