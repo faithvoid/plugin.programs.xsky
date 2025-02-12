@@ -804,7 +804,10 @@ def main():
 
     if not user_handle:
         user_handle = session.get('handle', 'unknown_user')
-    handle_action(action, session, user_handle, cursor)
+    if action in ["enable_notifications"]:
+        execute_action(action)
+    else:
+        handle_action(action, session, user_handle, cursor)
 
 if __name__ == '__main__':
     main()
