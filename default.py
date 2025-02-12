@@ -671,11 +671,14 @@ def display_menu():
 #        ("Search", "search"),
         ("Notifications", "notifications"),
         ("Chat", "conversations"),
+#        ("Feeds", "feeds"),
+#        ("Lists", "lists"),
+#        ("Search", "conversations"),
         ("Followers", "followers"),
         ("Following", "following"),
-        ("Profile", "profile"),
         ("Post", "create_post"),
         ("Post (Image)", "create_post_media"),
+        ("Profile", "profile"),
         ("Settings", "settings")
     ]
     
