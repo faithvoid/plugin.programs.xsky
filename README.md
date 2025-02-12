@@ -31,6 +31,7 @@ A functional, decentralized and easy to use social media network, right on your 
 - Making text/image posts & tagging users and hashtags in those posts
 - Viewing posts as list items + dialog windows
 - Sending / receiving messages
+- Fetching new messages as toast notifications every 5 seconds (via notifier.py)
 
 ## Not Working:
 - Viewing Images / Videos / Thumbnails
