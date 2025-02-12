@@ -32,7 +32,7 @@ A functional, decentralized and easy to use social media network, right on your 
 - Viewing posts as list items + dialog windows
 - Sending / receiving messages
 - Fetching new messages and notifications as toast notifications every 5 seconds (via notifier.py)
-- Invite fellow XBMC users to games via "Invite to Game" in chat!
+- Invite and accept invites from fellow XBMC users to games via "Invite to Game" in chat!
 
 ## Not Working:
 - Viewing Images / Videos / Thumbnails
@@ -52,4 +52,3 @@ A functional, decentralized and easy to use social media network, right on your 
 - Store login data somewhere that isn't just a plaintext file?
 - [Find a way to leverage Bluesky's chat functionality for an IM service(?)](https://github.com/faithvoid/plugin.programs.xchat)
 - Add notification system that alerts the user as to whenever they get a reply / follow / message while outside of the plugin (notifier.py currently support messages, looking into notifications as well, but that may not happen due to RAM constraints)
-- Add "Invite to Game" function under "Reply" in DMs that allows the user to invite another user to a game (ie; "alex.bsky.social has invited you to play Halo 2", and if the script detects a message in that format, the end user can select it and launch "Halo 2" if it's "installed" in "games.txt" (same idea as Cortana Server Browser).
