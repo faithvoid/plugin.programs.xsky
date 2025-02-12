@@ -693,8 +693,8 @@ def display_menu():
 # Display settings menu
 def display_settings():
     settings_items = [
-        ("Enable Chat Notifications", "enable_notifications"),
-        ("Disable Chat Notifications", "disable_notifications")
+        ("Enable Notifications", "enable_notifications"),
+        ("Disable Notifications", "disable_notifications")
     ]
     
     for item in settings_items:
