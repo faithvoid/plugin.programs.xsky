@@ -20,7 +20,7 @@ A functional, decentralized and easy to use social media network, right on your 
 - Copy the xSky folder to Q:/scripts/plugins/programs
 - (Optional) if using a non-Bluesky AT protocol site, you'll have to modify the BASE_URL in default.py to point at that site! Support outside of Bluesky is entirely unsupported, but testing & contributing is encouraged!
 - Run the add-on and enjoy!
-- (Optional) Run "notifier.py" from the XBMC File Browser (Q:/plugins/programs/xSky/notifier.py) to receive message notifications. (Hopefully this can be added as a menu toggle!). First run may take a few seconds and then spam you with all of your messages at once. After this, all subsequent reruns should only show messages not previously read via XBMC, as it lists all read message IDs and usernames/handles in "messages.txt" & "handles.txt" to prevent showing already-read messages (as there's currently no "read" indicator in the AT chat protocol) and having to fetch the username attached to each DID from the server for each individual message.
+- (Optional) To get chat & notification pop-ups, go to "Settings" and select "Enable Notifications". The first run may take a few seconds and spam you with all of your messages at once. After this, all subsequent reruns should only show messages not previously read via XBMC, as it lists all read message IDs and usernames/handles in "messages.txt" & "handles.txt" to prevent showing already-read messages and having to fetch the username attached to each DID from the server for each individual message. Future versions will hopefully use "seenAt" instead.
 
 ## Working:
 - Logging in (via inserting your credentials into login.txt)
@@ -31,7 +31,7 @@ A functional, decentralized and easy to use social media network, right on your 
 - Making text/image posts & tagging users and hashtags in those posts
 - Viewing posts as list items + dialog windows
 - Sending / receiving messages
-- Fetching new messages as toast notifications every 5 seconds (via notifier.py)
+- Fetching new messages and notifications as toast notifications every 5 seconds (via notifier.py)
 
 ## Not Working:
 - Viewing Images / Videos / Thumbnails
