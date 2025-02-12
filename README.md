@@ -32,6 +32,7 @@ A functional, decentralized and easy to use social media network, right on your 
 - Viewing posts as list items + dialog windows
 - Sending / receiving messages
 - Fetching new messages and notifications as toast notifications every 5 seconds (via notifier.py)
+- Invite fellow XBMC users to games via "Invite to Game" in chat!
 
 ## Not Working:
 - Viewing Images / Videos / Thumbnails
