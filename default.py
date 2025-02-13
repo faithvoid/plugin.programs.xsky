@@ -647,7 +647,7 @@ def display_messages(session, convo_id, messages):
             game_title = match.group(2)
             
             # Read the games.txt file to get the game path
-            games_file = os.path.join(os.path.dirname(__file__), 'games.txt')
+            games_file = xbmc.translatePath('special://home/games.txt')
             with open(games_file, 'r') as f:
                 games = [line.strip().split('", "') for line in f.readlines()]
             
@@ -697,7 +697,7 @@ def reply_to_conversation(session, convo_id):
 # Function to invite to a game
 def invite_to_game(session, convo_id):
     # Read the games.txt file to get the list of games
-    games_file = os.path.join(os.path.dirname(__file__), 'games.txt')
+    games_file = xbmc.translatePath('special://home/games.txt')
     with open(games_file, 'r') as f:
         games = [line.strip() for line in f.readlines() if '", "' in line]
     
