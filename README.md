@@ -51,7 +51,7 @@ A functional, decentralized and easy to use social media network, right on your 
 - Add "Follow / Unfollow User", "Block User", "Reply to User" & "Message User" as context menu options
 - Store login data somewhere that isn't just a plaintext file?
 - [Find a way to leverage Bluesky's chat functionality for an IM service(?)](https://github.com/faithvoid/plugin.programs.xchat)
+- Add "Install Game" option to Settings (aka writing a game name and path to games.txt), and if attempting to launch a game that's not 'installed', ask the user if they'd like to select the .xbe for the game to write into games.txt.
+- Add the ability to edit handle / name / bio while in "Profile"
+- Hardcode games.txt in both this & Cortana Server Browser to "special://profile//games.txt" so they share the same file
 - Implement group DMs / media DMs once they're implemented into Bluesky
-- Add "Install Game" option to Settings (aka writing a game name and path to games.txt)
-- Ask user if they'd like to launch game when inviting user, and when accepting an invitation, if the user doesn't have the game 'installed', asks if they'd like to select the directory where the game is located.
-- Add the ability to edit handle / name / bio while in "Profile".
