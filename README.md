@@ -45,6 +45,7 @@ A functional, decentralized and easy to use social media network, right on your 
 - Show user avatar as thumbnail if the image doesn't contain media
 - Add pagination to messages to reduce load times (set to 25 message limit?)
 - Improve visual language (try to match 1:1 to the Bluesky website where possible)
+- Merge "Invite sent successfully!" and "Would you like to launch the game now?" options into one window.
 - Add notification / chat indicators (ie; "Chat (5)" / "Notifications (2)")
 - Add some way to differentiate between a post and a reply
 - Add reply chains(?)
