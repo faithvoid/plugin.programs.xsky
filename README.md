@@ -55,3 +55,4 @@ A functional, decentralized and easy to use social media network, right on your 
 - Add the ability to edit handle / name / bio while in "Profile"
 - Hardcode games.txt in both this & Cortana Server Browser to "special://profile//games.txt" so they share the same file
 - Implement group DMs / media DMs once they're implemented into Bluesky
+- Implement multi-account system?
