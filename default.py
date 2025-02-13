@@ -33,7 +33,7 @@ TIMEZONE_OFFSET = -5  # Manually enter the time zone difference from UTC (e.g., 
 
 # Load login credentials
 def load_credentials():
-    login_file = os.path.join(os.path.dirname(__file__), 'login.txt')
+    login_file = xbmc.translatePath('special://home/userdata/profiles/{}/login.txt'.format(xbmc.getInfoLabel('System.ProfileName')))
     if os.path.exists(login_file):
         with open(login_file, 'r') as f:
             lines = f.readlines()
