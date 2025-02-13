@@ -32,7 +32,7 @@ A functional, decentralized and easy to use social media network, right on your 
 - Viewing posts as list items + dialog windows
 - Sending / receiving messages
 - Fetching new messages and notifications as toast notifications every 5 seconds (via notifier.py)
-- Invite and accept invites from fellow XBMC users to games via "Invite to Game" in chat!
+- Sending and receiving game invites from fellow XBMC users via "Invite to Game" in chat! (currently needs games manually added to games.txt)
 
 ## Not Working:
 - Viewing Images / Videos / Thumbnails
@@ -41,9 +41,9 @@ A functional, decentralized and easy to use social media network, right on your 
 - Emojis (slightly breaks timestamps on the message with the emoji)
 
 ## TODO:
-- Fix thumbnails for posts
-- Show user avatar as thumbnail if the image doesn't contain media (currently shows avatars in Following / Followers, but is glitchy in posts / profiles)
-- Add pagination to messages to reduce load times
+- Fix thumbnails for posts & avatars in "Profiles" menu.
+- Show user avatar as thumbnail if the image doesn't contain media
+- Add pagination to messages to reduce load times (set to 25 message limit?)
 - Improve visual language (try to match 1:1 to the Bluesky website where possible)
 - Add notification / chat indicators (ie; "Chat (5)" / "Notifications (2)")
 - Add some way to differentiate between a post and a reply
@@ -54,3 +54,4 @@ A functional, decentralized and easy to use social media network, right on your 
 - Implement group DMs / media DMs once they're implemented into Bluesky
 - Add "Install Game" option to Settings (aka writing a game name and path to games.txt)
 - Ask user if they'd like to launch game when inviting user, and when accepting an invitation, if the user doesn't have the game 'installed', asks if they'd like to select the directory where the game is located.
+- Add the ability to edit handle / name / bio while in "Profile".
