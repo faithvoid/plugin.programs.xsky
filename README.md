@@ -18,6 +18,7 @@ A functional, decentralized and easy to use social media network, right on your 
 - Extract the .zip file and edit "login.txt" to contain your full username (ie; username.bsky.social or username.custom.domain) and app password (do not use your actual password!)
 - Edit "default.py" and modify "TIMEZONE_OFFSET = -5" to your local timezone relative to UTC (-5 is EST) for accurate timestamps
 - Copy the xSky folder to Q:/scripts/plugins/programs
+- Copy "login.txt" to your user profile (Q:/UserData/profiles/ProfileNameHere). This lets every XBMC user have their own Bluesky / AT Protocol login!
 - (Optional) if using a non-Bluesky AT protocol site, you'll have to modify the BASE_URL in default.py to point at that site! Support outside of Bluesky is entirely unsupported, but testing & contributing is encouraged!
 - Run the add-on and enjoy!
 - (Optional) To get chat & notification pop-ups, go to "Settings" and select "Enable Notifications". The first run may take a few seconds and spam you with all of your messages at once. After this, all subsequent reruns should only show messages not previously read via XBMC, as it lists all read message IDs and usernames/handles in "messages.txt" & "handles.txt" to prevent showing already-read messages and having to fetch the username attached to each DID from the server for each individual message. Future versions will hopefully use "seenAt" instead.
